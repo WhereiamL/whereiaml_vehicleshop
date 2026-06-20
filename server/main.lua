@@ -59,6 +59,13 @@ lib.callback.register('whereiaml_vehicleshop:getData', function()
     }
 end)
 
+lib.callback.register('whereiaml_vehicleshop:getMoney', function(source)
+    return {
+        cash = Framework.GetMoney(source, 'cash'),
+        bank = Framework.GetMoney(source, 'bank'),
+    }
+end)
+
 local STUDIO_BUCKET_BASE <const> = 6000
 local inStudio = {}
 

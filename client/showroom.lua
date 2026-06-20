@@ -81,7 +81,6 @@ local function renderLoop()
                 while diff < -180 do diff = diff + 360 end
                 state.heading = state.heading + diff * ctrl.rotateLerp
                 SetEntityCoordsNoOffset(preview, p.x, p.y, p.z, false, false, false)
-                SetEntityVelocity(preview, 0.0, 0.0, 0.0)
                 SetEntityHeading(preview, state.heading)
             end
             updateCam()
@@ -134,13 +133,28 @@ function Showroom.setModel(model)
     spawnPreview(model)
 end
 
+local doorTokens = {}
+
 function Showroom.setDoor(doorIndex, open)
     if not preview or not DoesEntityExist(preview) then return end
-    if open then
-        SetVehicleDoorOpen(preview, doorIndex, false, false)
-    else
-        SetVehicleDoorShut(preview, doorIndex, false)
-    end
+    local veh = preview
+    doorTokens[doorIndex] = (doorTokens[doorIndex] or 0) + 1
+    local token = doorTokens[doorIndex]
+    CreateThread(function()
+        local steps <const> = 6
+        for i = 1, steps do
+            if not active or doorTokens[doorIndex] ~= token or not DoesEntityExist(veh) then return end
+            local r = open and (i / steps) or (1 - i / steps)
+            SetVehicleDoorControl(veh, doorIndex, 6.0, r)
+            Wait(15)
+        end
+        if doorTokens[doorIndex] ~= token or not DoesEntityExist(veh) then return end
+        if open then
+            SetVehicleDoorOpen(veh, doorIndex, false, false)
+        else
+            SetVehicleDoorShut(veh, doorIndex, false)
+        end
+    end)
 end
 
 function Showroom.getColors()

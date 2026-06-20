@@ -41,6 +41,8 @@ function OpenShop(dealership)
     local catalog = filterCatalog(data.catalog, dealership)
     if #catalog == 0 then return end
 
+    local money = lib.callback.await('whereiaml_vehicleshop:getMoney', false)
+
     Showroom.open(dealership, catalog[1].model)
 
     local cp, cs = Showroom.getColors()
@@ -55,6 +57,7 @@ function OpenShop(dealership)
         dealership = dealership.label,
         colors = { primary = cp, secondary = cs },
         selected = catalog[1].model,
+        money = money,
     })
 end
 

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box, Button, ColorPicker, Group, Paper, Progress,
-  ScrollArea, SegmentedControl, Stack, Tabs, Text, ThemeIcon, Title, Tooltip, UnstyledButton,
+  ScrollArea, SegmentedControl, Stack, Tabs, Text, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
-  IconBuildingStore, IconBrush, IconCreditCard, IconDoor, IconKey,
-  IconPaint, IconRotate360, IconSteeringWheel, IconStopwatch, IconZoomScan,
+  IconBuildingBank, IconBuildingStore, IconBrush, IconCash, IconCreditCard, IconDoor, IconKey,
+  IconPaint, IconRotate360, IconSearch, IconSteeringWheel, IconStopwatch, IconZoomScan,
 } from '@tabler/icons-react';
 import { fetchNui } from './fetchNui.js';
 import { sfx } from './sound.js';
@@ -83,6 +83,8 @@ function TestDriveBox({ td }) {
 export default function App() {
   const [visible, setVisible] = useState(false);
   const [data, setData] = useState(null);
+  const [wallet, setWallet] = useState({ cash: 0, bank: 0 });
+  const [search, setSearch] = useState('');
   const [td, setTd] = useState(null);
   const [activeCat, setActiveCat] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -99,6 +101,8 @@ export default function App() {
 
   function applyOpen(payload) {
     setData(payload);
+    if (payload.money) setWallet(payload.money);
+    setSearch('');
     setSelected(payload.selected);
     const sel = payload.catalog.find((c) => c.model === payload.selected);
     setActiveCat(sel ? sel.category : payload.catalog[0]?.category);
@@ -147,8 +151,10 @@ export default function App() {
 
   const shown = useMemo(() => {
     if (!data) return [];
+    const q = search.trim().toLowerCase();
+    if (q) return data.catalog.filter((c) => `${c.name} ${c.brand}`.toLowerCase().includes(q));
     return data.catalog.filter((c) => c.category === activeCat);
-  }, [data, activeCat]);
+  }, [data, activeCat, search]);
 
   const current = useMemo(
     () => (data ? data.catalog.find((c) => c.model === selected) : null),
@@ -268,16 +274,31 @@ export default function App() {
                 </Box>
               </Group>
 
-              <Tabs value={activeCat} onChange={(v) => { sfx.tick(); setActiveCat(v); }} variant="pills" px="xs">
-                <Tabs.List>
-                  {present.map((c) => (
-                    <Tabs.Tab key={c.id} value={c.id} size="xs">{c.label}</Tabs.Tab>
-                  ))}
-                </Tabs.List>
-              </Tabs>
+              <Box px="md" pb="xs">
+                <TextInput
+                  size="xs"
+                  value={search}
+                  onChange={(e) => setSearch(e.currentTarget.value)}
+                  placeholder="Search vehicles…"
+                  leftSection={<IconSearch size={14} />}
+                />
+              </Box>
+
+              {!search && (
+                <Tabs value={activeCat} onChange={(v) => { sfx.tick(); setActiveCat(v); }} variant="pills" px="xs">
+                  <Tabs.List>
+                    {present.map((c) => (
+                      <Tabs.Tab key={c.id} value={c.id} size="xs">{c.label}</Tabs.Tab>
+                    ))}
+                  </Tabs.List>
+                </Tabs>
+              )}
 
               <ScrollArea style={{ flex: 1 }} p="xs" offsetScrollbars scrollbarSize={8}>
                 <Stack gap={6} pr={6}>
+                  {shown.length === 0 && (
+                    <Text size="xs" c="dimmed" ta="center" mt="md">No vehicles found.</Text>
+                  )}
                   {shown.map((c) => {
                     const active = c.model === selected;
                     return (
@@ -471,6 +492,27 @@ export default function App() {
                 <Group gap={6}>
                   <ThemeIcon size="sm" radius="sm" variant="light" color="blue"><IconZoomScan size={14} /></ThemeIcon>
                   <Text size="xs" c="dimmed">Scroll to zoom</Text>
+                </Group>
+              </Group>
+            </Paper>
+
+            <Paper
+              className="money-bar"
+              radius="sm" px="md" py={6}
+              style={{
+                position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)',
+                pointerEvents: 'none', backgroundColor: 'rgba(24,24,27,0.92)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <Group gap="lg">
+                <Group gap={6}>
+                  <ThemeIcon size="sm" radius="sm" variant="light" color="teal"><IconCash size={15} /></ThemeIcon>
+                  <Text size="sm" fw={700} c="white">{money(wallet.cash)}</Text>
+                </Group>
+                <Group gap={6}>
+                  <ThemeIcon size="sm" radius="sm" variant="light" color="blue"><IconBuildingBank size={15} /></ThemeIcon>
+                  <Text size="sm" fw={700} c="white">{money(wallet.bank)}</Text>
                 </Group>
               </Group>
             </Paper>
