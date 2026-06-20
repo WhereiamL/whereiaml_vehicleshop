@@ -36,16 +36,39 @@ lib.callback.register('whereiaml_vehicleshop:getData', function()
 end)
 
 local STUDIO_BUCKET_BASE <const> = 6000
+local inStudio = {}
+
+local function leaveStudio(src)
+    inStudio[src] = nil
+    SetPlayerRoutingBucket(src, 0)
+end
+
+---@return boolean
+function IsInStudio(src)
+    return inStudio[src] == true
+end
 
 lib.callback.register('whereiaml_vehicleshop:enterStudio', function(source)
+    inStudio[source] = true
     SetPlayerRoutingBucket(source, STUDIO_BUCKET_BASE + source)
     return true
 end)
 
-RegisterNetEvent('whereiaml_vehicleshop:exitStudio', function()
-    SetPlayerRoutingBucket(source, 0)
+lib.callback.register('whereiaml_vehicleshop:exitStudio', function(source)
+    leaveStudio(source)
+    return true
 end)
 
 AddEventHandler('playerDropped', function()
-    SetPlayerRoutingBucket(source, 0)
+    leaveStudio(source)
+end)
+
+AddEventHandler('onResourceStop', function(res)
+    if res ~= GetCurrentResourceName() then return end
+    for _, id in ipairs(GetPlayers()) do
+        local src = tonumber(id)
+        if src and GetPlayerRoutingBucket(src) >= STUDIO_BUCKET_BASE then
+            SetPlayerRoutingBucket(src, 0)
+        end
+    end
 end)

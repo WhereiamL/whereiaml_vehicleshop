@@ -215,7 +215,7 @@ function Showroom.close()
         SetEntityHeading(ped, restoreHeading or 0.0)
     end
 
-    TriggerServerEvent('whereiaml_vehicleshop:exitStudio')
+    lib.callback.await('whereiaml_vehicleshop:exitStudio', false)
 
     Wait(100)
     DoScreenFadeIn(400)

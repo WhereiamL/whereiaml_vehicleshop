@@ -129,12 +129,13 @@ end
 ---@param coords vector4
 ---@param vehicleId integer|string
 ---@param props table ox_lib vehicle properties (color/finish/plate) applied on stream
+---@param typeHint? string vehicle type ('automobile'/'bike'/'heli'/'boat'...) for ESX/config catalogs
 ---@return boolean
-function Framework.SpawnOwnedVehicle(src, model, plate, coords, vehicleId, props)
-    local vehicleType = 'automobile'
+function Framework.SpawnOwnedVehicle(src, model, plate, coords, vehicleId, props, typeHint)
+    local vehicleType = typeHint or 'automobile'
     if Framework.name == 'qbx' then
         local info = exports.qbx_core:GetVehiclesByHash(joaat(model))
-        vehicleType = info and info.type or 'automobile'
+        vehicleType = (info and info.type) or typeHint or 'automobile'
     end
 
     local veh = CreateVehicleServerSetter(model, vehicleType, coords.x, coords.y, coords.z, coords.w)
@@ -146,8 +147,11 @@ function Framework.SpawnOwnedVehicle(src, model, plate, coords, vehicleId, props
     if vehicleId then Entity(veh).state:set('vehicleid', tonumber(vehicleId) or vehicleId, false) end
     if props then Entity(veh).state:set('ox_lib:setVehicleProperties', props, true) end
 
-    if Framework.name == 'qbx' and GetResourceState('qbx_vehiclekeys') == 'started' then
-        exports.qbx_vehiclekeys:GiveKeys(src, veh)
+    if Framework.name == 'qbx' then
+        Entity(veh).state:set('persisted', true, true)
+        if GetResourceState('qbx_vehiclekeys') == 'started' then
+            exports.qbx_vehiclekeys:GiveKeys(src, veh)
+        end
     end
     return true
 end

@@ -37,6 +37,8 @@ Config.CatalogSource = 'framework'
 -- name:     display name. brand: display brand. price: full price.
 -- category: must match a Config.Categories id.
 -- image:    optional. nui:// url or https url for a thumbnail. Leave nil for a clean text card.
+-- vehicleType: optional ('automobile'|'bike'|'heli'|'boat'|'trailer'...). Only needed on ESX/config
+--           catalogs for non-cars; on QBox the type is detected automatically. Defaults to 'automobile'.
 Config.Catalog = {
     { model = 'blista',  name = 'Blista',  brand = 'Dinka',     price = 16000,  category = 'compacts' },
     { model = 'asea',    name = 'Asea',    brand = 'Declasse',  price = 12000,  category = 'sedans' },
