@@ -99,7 +99,7 @@ end
 ---@param src number
 ---@param model string
 ---@param props table ox_lib vehicle properties (color1/color2 = {r,g,b})
----@return integer? vehicleId
+---@return integer|string? vehicleId, string? plate
 function Framework.GiveVehicle(src, model, props)
     local citizenid = Framework.GetCitizenId(src)
     if not citizenid then return nil end
@@ -109,15 +109,42 @@ function Framework.GiveVehicle(src, model, props)
             citizenid = citizenid,
             props = props,
         })
-        return vehicleId
+        if not vehicleId then return nil end
+        local v = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
+        local plate = v and (v.plate or (v.props and v.props.plate))
+        return vehicleId, plate
     elseif Framework.name == 'esx' then
         local plate = props.plate or ('WL' .. math.random(1000, 9999))
         MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, type) VALUES (?, ?, ?, ?)', {
             citizenid, plate, json.encode(props), 'car',
         })
-        return plate
+        return plate, plate
     end
     return nil
+end
+
+---@param src number
+---@param model string
+---@param plate string
+---@param coords vector4
+---@param vehicleId integer|string
+---@return boolean
+function Framework.SpawnOwnedVehicle(src, model, plate, coords, vehicleId)
+    if Framework.name == 'qbx' then
+        local info = exports.qbx_core:GetVehiclesByHash(joaat(model))
+        local vehicleType = info and info.type or 'automobile'
+        local veh = CreateVehicleServerSetter(model, vehicleType, coords.x, coords.y, coords.z, coords.w)
+        local started = GetGameTimer()
+        while not DoesEntityExist(veh) and GetGameTimer() - started < 5000 do Wait(0) end
+        if not DoesEntityExist(veh) then return false end
+        if plate then SetVehicleNumberPlateText(veh, plate) end
+        if vehicleId then Entity(veh).state:set('vehicleid', tonumber(vehicleId) or vehicleId, false) end
+        if GetResourceState('qbx_vehiclekeys') == 'started' then
+            exports.qbx_vehiclekeys:GiveKeys(src, veh)
+        end
+        return true
+    end
+    return false
 end
 
 function Framework.GetSrcByCitizenId(citizenid)

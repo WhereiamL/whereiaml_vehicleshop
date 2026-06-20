@@ -57,11 +57,10 @@ local function validColor(c)
         and type(c.b) == 'number' and c.b >= 0 and c.b <= 255
 end
 
-local function dealershipExists(dealershipId)
+local function getDealership(dealershipId)
     for i = 1, #Config.Dealerships do
-        if Config.Dealerships[i].id == dealershipId then return true end
+        if Config.Dealerships[i].id == dealershipId then return Config.Dealerships[i] end
     end
-    return false
 end
 
 lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
@@ -89,7 +88,8 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
     local entry = Catalog.entry(data.model)
     if not entry then return { ok = false } end
 
-    if not dealershipExists(data.dealership) then
+    local dealership = getDealership(data.dealership)
+    if not dealership then
         return { ok = false }
     end
 
@@ -110,12 +110,13 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
             if not Framework.RemoveMoney(src, cfg.downPaymentFrom, down, 'vehicleshop-down') then
                 return { ok = false, reason = 'not_enough_money' }
             end
-            local vehicleId = Framework.GiveVehicle(src, data.model, props)
+            local vehicleId, plate = Framework.GiveVehicle(src, data.model, props)
             if not vehicleId then
                 Framework.AddMoney(src, cfg.downPaymentFrom, down, 'vehicleshop-refund')
                 return { ok = false, reason = 'vehicle_failed' }
             end
             Finance.create(Framework.GetCitizenId(src), vehicleId, price - down)
+            Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId)
             Framework.Notify(src, locale('purchase_financed', entry.name), 'success')
             return { ok = true }
         end
@@ -123,11 +124,12 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
         if not Framework.RemoveMoney(src, payment, price, 'vehicleshop-purchase') then
             return { ok = false, reason = 'not_enough_money' }
         end
-        local vehicleId = Framework.GiveVehicle(src, data.model, props)
+        local vehicleId, plate = Framework.GiveVehicle(src, data.model, props)
         if not vehicleId then
             Framework.AddMoney(src, payment, price, 'vehicleshop-refund')
             return { ok = false, reason = 'vehicle_failed' }
         end
+        Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId)
         Framework.Notify(src, locale('purchase_success', entry.name), 'success')
         return { ok = true }
     end)
