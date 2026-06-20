@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Box, Button, Chip, ColorPicker, Group, Paper, Progress,
-  ScrollArea, SegmentedControl, Stack, Tabs, Text, ThemeIcon, Title, UnstyledButton,
+  Box, Button, ColorPicker, Group, Paper, Progress,
+  ScrollArea, SegmentedControl, Stack, Tabs, Text, ThemeIcon, Title, Tooltip, UnstyledButton,
 } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import {
   IconBuildingStore, IconBrush, IconCreditCard, IconDoor, IconKey,
   IconPaint, IconRotate360, IconSteeringWheel, IconStopwatch, IconZoomScan,
@@ -28,6 +29,13 @@ function clock(s) {
 
 const PAYMENT_LABELS = { cash: 'Cash', bank: 'Bank', finance: 'Finance' };
 
+const FINISH_INFO = {
+  gloss: 'Classic glossy paint.',
+  metallic: 'Shiny metallic flake finish.',
+  pearl: 'Pearlescent sheen that shifts under light.',
+  matte: 'Flat, non-reflective finish.',
+};
+
 function SectionLabel({ icon, children }) {
   return (
     <Group gap={6} mb={8}>
@@ -43,7 +51,7 @@ function TestDriveBox({ td }) {
     <Paper
       className="td-box"
       p="sm"
-      radius="md"
+      radius="sm"
       withBorder
       style={{
         position: 'fixed',
@@ -112,6 +120,12 @@ export default function App() {
         if (msg.state === 'stop') setTd(null);
         else setTd({ seconds: msg.seconds, total: msg.total });
       }
+      else if (msg.action === 'notify') {
+        const color = msg.notifyType === 'error' ? 'red' : msg.notifyType === 'success' ? 'teal' : 'blue';
+        if (msg.notifyType === 'success') sfx.success();
+        else sfx.click();
+        notifications.show({ color, title: msg.title, message: msg.message, autoClose: 4500 });
+      }
     }
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
@@ -171,7 +185,6 @@ export default function App() {
   }
   async function buy() {
     if (buying || !current) return;
-    sfx.success();
     setBuying(true);
     await fetchNui('buy', { model: current.model, payment });
     setBuying(false);
@@ -185,6 +198,16 @@ export default function App() {
     sfx.tick();
     setVisible(false);
     fetchNui('close');
+  }
+  function paymentDesc(p) {
+    if (!data) return '';
+    if (p === 'cash') return 'Pay the full price in cash right now.';
+    if (p === 'bank') return 'Pay the full price from your bank account.';
+    if (p === 'finance') {
+      const f = data.finance;
+      return `Pay ${f.downPercent}% down, then ${f.maxPayments} installments charged ${f.dueText || 'on schedule'}.`;
+    }
+    return '';
   }
 
   function onPointerDown(e) {
@@ -236,7 +259,7 @@ export default function App() {
           />
 
           <Box className="shell">
-            <Paper className="panel-left" m="md" radius="md" w={380} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <Paper className="panel-left" m="md" radius="sm" w={380} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <Group p="md" gap="sm" wrap="nowrap">
                 <ThemeIcon size={40} radius="md" variant="light" color="blue"><IconBuildingStore size={22} /></ThemeIcon>
                 <Box>
@@ -253,8 +276,8 @@ export default function App() {
                 </Tabs.List>
               </Tabs>
 
-              <ScrollArea style={{ flex: 1 }} p="xs">
-                <Stack gap={6}>
+              <ScrollArea style={{ flex: 1 }} p="xs" offsetScrollbars scrollbarSize={8}>
+                <Stack gap={6} pr={6}>
                   {shown.map((c) => {
                     const active = c.model === selected;
                     return (
@@ -283,7 +306,7 @@ export default function App() {
               </ScrollArea>
             </Paper>
 
-            <Paper className="panel-right" m="md" radius="md" w={420} p="md">
+            <Paper className="panel-right" m="md" radius="sm" w={420} p="md">
               <Stack gap="md" h="100%">
                 <Box
                   h={150}
@@ -320,11 +343,23 @@ export default function App() {
                 <Box>
                   <SectionLabel icon={<IconDoor size={14} />}>Doors</SectionLabel>
                   <Group gap={6}>
-                    {data.doors.map((d) => (
-                      <Chip key={d.doorIndex} size="xs" checked={!!doorsOpen[d.doorIndex]} onChange={() => toggleDoor(d.doorIndex)}>
-                        {d.label}
-                      </Chip>
-                    ))}
+                    {data.doors.map((d) => {
+                      const open = !!doorsOpen[d.doorIndex];
+                      return (
+                        <Button
+                          key={d.doorIndex}
+                          size="xs"
+                          radius="sm"
+                          w={92}
+                          px={6}
+                          color="blue"
+                          variant={open ? 'filled' : 'default'}
+                          onClick={() => toggleDoor(d.doorIndex)}
+                        >
+                          {d.label}
+                        </Button>
+                      );
+                    })}
                   </Group>
                 </Box>
 
@@ -340,22 +375,23 @@ export default function App() {
                     ]}
                   />
                   {colorTab === 'pearl' ? (
-                    <ScrollArea h={132}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6, paddingRight: 8 }}>
+                    <ScrollArea h={150} offsetScrollbars scrollbarSize={8} type="always">
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 7, padding: '3px 10px 3px 3px' }}>
                         {PEARL_COLORS.map((c) => (
-                          <div
-                            key={c.i}
-                            className="swatch"
-                            title={c.n}
-                            onClick={() => changePearl(c.i)}
-                            style={{
-                              paddingTop: '100%',
-                              borderRadius: 4,
-                              cursor: 'pointer',
-                              background: c.hex,
-                              outline: pearl === c.i ? '2px solid var(--mantine-color-blue-5)' : '1px solid rgba(255,255,255,0.12)',
-                            }}
-                          />
+                          <Tooltip key={c.i} label={c.n} openDelay={250} withArrow>
+                            <div
+                              className="swatch"
+                              onClick={() => changePearl(c.i)}
+                              style={{
+                                paddingTop: '100%',
+                                borderRadius: 3,
+                                cursor: 'pointer',
+                                background: c.hex,
+                                outline: pearl === c.i ? '2px solid var(--mantine-color-blue-5)' : '1px solid rgba(255,255,255,0.14)',
+                                outlineOffset: 1,
+                              }}
+                            />
+                          </Tooltip>
                         ))}
                       </div>
                     </ScrollArea>
@@ -374,12 +410,14 @@ export default function App() {
                   <SegmentedControl
                     fullWidth size="xs"
                     value={finish} onChange={changeFinish}
-                    data={[
-                      { label: 'Gloss', value: 'gloss' },
-                      { label: 'Metallic', value: 'metallic' },
-                      { label: 'Pearl', value: 'pearl' },
-                      { label: 'Matte', value: 'matte' },
-                    ]}
+                    data={['gloss', 'metallic', 'pearl', 'matte'].map((v) => ({
+                      value: v,
+                      label: (
+                        <Tooltip label={FINISH_INFO[v]} openDelay={200} withArrow position="bottom">
+                          <span>{v.charAt(0).toUpperCase() + v.slice(1)}</span>
+                        </Tooltip>
+                      ),
+                    }))}
                   />
                 </Box>
 
@@ -389,11 +427,19 @@ export default function App() {
                     fullWidth value={payment} onChange={(v) => { sfx.click(); setPayment(v); }}
                     data={data.payments
                       .filter((p) => p !== 'finance' || data.finance.enabled)
-                      .map((p) => ({ label: PAYMENT_LABELS[p] || p, value: p }))}
+                      .map((p) => ({
+                        value: p,
+                        label: (
+                          <Tooltip label={paymentDesc(p)} openDelay={200} withArrow position="bottom" multiline w={220}>
+                            <span>{PAYMENT_LABELS[p] || p}</span>
+                          </Tooltip>
+                        ),
+                      }))}
                   />
-                  {financeInfo && (
-                    <Text size="xs" c="dimmed" mt={6}>
-                      {money(financeInfo.down)} down · {money(financeInfo.per)} × {financeInfo.count} payments
+                  <Text size="xs" c="dimmed" mt={6}>{paymentDesc(payment)}</Text>
+                  {financeInfo && payment === 'finance' && (
+                    <Text size="xs" c="blue.4" fw={600} mt={2}>
+                      {money(financeInfo.down)} down · {money(financeInfo.per)} × {financeInfo.count}
                     </Text>
                   )}
                 </Box>
@@ -410,7 +456,7 @@ export default function App() {
 
             <Paper
               className="hint-box"
-              radius="md" px="sm" py={6}
+              radius="sm" px="sm" py={6}
               style={{
                 position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
                 pointerEvents: 'none', backgroundColor: 'rgba(24,24,27,0.9)',

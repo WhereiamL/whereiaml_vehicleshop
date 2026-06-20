@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { MantineProvider, createTheme } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import './styles.css';
 import App from './App.jsx';
 import { isBrowser } from './fetchNui.js';
@@ -9,7 +11,7 @@ import { isBrowser } from './fetchNui.js';
 const theme = createTheme({
   fontFamily: 'Roboto, sans-serif',
   primaryColor: 'blue',
-  defaultRadius: 'md',
+  defaultRadius: 'sm',
   components: {
     Paper: {
       defaultProps: { withBorder: false },
@@ -33,6 +35,7 @@ if (isBrowser) {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <MantineProvider theme={theme} defaultColorScheme="dark">
+      <Notifications position="top-center" zIndex={2000} />
       <App />
     </MantineProvider>
   </React.StrictMode>,

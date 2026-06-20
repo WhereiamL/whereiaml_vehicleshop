@@ -28,7 +28,7 @@ function TestDrive.stop()
     if cfg.returnToShop and d then
         OpenShop(d)
     else
-        Framework.Notify(locale('testdrive_over'), 'inform')
+        ShopNotify('inform', locale('testdrive_over'))
     end
 end
 
@@ -37,7 +37,7 @@ function TestDrive.start(model, dealership, colorPrimary, colorSecondary, finish
 
     local hash = joaat(model)
     if not lib.requestModel(hash, 10000) then
-        Framework.Notify(locale('testdrive_failed'), 'error')
+        ShopNotify('error', locale('testdrive_failed'))
         return false
     end
 
@@ -53,6 +53,7 @@ function TestDrive.start(model, dealership, colorPrimary, colorSecondary, finish
     SetModelAsNoLongerNeeded(hash)
     SetEntityAsMissionEntity(veh, true, true)
     SetVehicleModKit(veh, 0)
+    SetVehicleDirtLevel(veh, 0.0)
     local pt = PAINT[finish] or 0
     SetVehicleModColor_1(veh, pt, 0, 0)
     SetVehicleModColor_2(veh, pt, 0)

@@ -1,5 +1,28 @@
 lib.locale()
 
+local DAYS <const> = { [0] = 'Sunday', [1] = 'Monday', [2] = 'Tuesday', [3] = 'Wednesday', [4] = 'Thursday', [5] = 'Friday', [6] = 'Saturday', [7] = 'Sunday' }
+
+---Turns an ox_lib cron expression into a human-readable due description for the UI.
+---@param cron string
+---@return string
+local function cronToHuman(cron)
+    if type(cron) ~= 'string' then return 'on schedule' end
+    local fields = {}
+    for part in cron:gmatch('%S+') do fields[#fields + 1] = part end
+    local min, hour, _, _, dow = fields[1], fields[2], fields[3], fields[4], fields[5]
+
+    local time = ''
+    if hour and hour:match('^%d+$') then
+        time = (' at %02d:%02d'):format(tonumber(hour), tonumber(min) or 0)
+    end
+
+    if dow and dow ~= '*' then
+        local d = tonumber(dow)
+        if d and DAYS[d] then return ('every %s%s'):format(DAYS[d], time) end
+    end
+    return ('every day%s'):format(time)
+end
+
 CreateThread(function()
     local ok = pcall(function()
         MySQL.query.await([[CREATE TABLE IF NOT EXISTS `whereiaml_vehicleshop_finance` (
@@ -31,6 +54,7 @@ lib.callback.register('whereiaml_vehicleshop:getData', function()
             downPercent = f.minDownPercent,
             interestPercent = f.interestPercent,
             maxPayments = f.maxPayments,
+            dueText = cronToHuman(f.paymentCron),
         },
     }
 end)

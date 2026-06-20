@@ -1,4 +1,5 @@
 {
+    "notify_title": "Vehicle Shop",
     "target_browse": "Browse Vehicles",
     "purchase_success": "You purchased a %s.",
     "purchase_financed": "You financed a %s.",

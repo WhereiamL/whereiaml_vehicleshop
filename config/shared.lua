@@ -11,6 +11,12 @@ Config.Locale = 'en'
 -- Set true to print debug logs (kept false in production).
 Config.Debug = false
 
+-- Notification style:
+--   'custom'    -> the resource's own Mantine NUI notifications (top-center, animated).
+--   'framework' -> the framework/ox_lib notifications (exports.qbx_core:Notify / ESX.ShowNotification).
+-- All notification text is taken from locales/<locale>.json either way.
+Config.Notifications = 'custom'
+
 -- Vehicle categories shown as tabs in the UI, in this order.
 -- `id` must match the category used in Config.Catalog entries.
 -- `label` is the tab text. `icon` is a Tabler icon name (Mantine uses Tabler icons).

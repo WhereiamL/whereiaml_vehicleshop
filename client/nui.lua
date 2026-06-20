@@ -7,6 +7,16 @@ local function fetchData()
     return shopData
 end
 
+---@param ntype 'success'|'error'|'inform'
+---@param message string
+function ShopNotify(ntype, message)
+    if Config.Notifications == 'framework' then
+        Framework.Notify(message, ntype)
+    else
+        SendNUIMessage({ action = 'notify', notifyType = ntype, title = locale('notify_title'), message = message })
+    end
+end
+
 local function filterCatalog(catalog, dealership)
     if not dealership.categories then return catalog end
     local allowed = {}
@@ -110,7 +120,13 @@ RegisterNUICallback('buy', function(data, cb)
         pearl = Showroom.getPearl(),
     })
     cb(res or { ok = false })
-    if res and res.ok then closeUI() end
+    if res and res.ok then
+        ShopNotify('success', locale(data.payment == 'finance' and 'purchase_financed' or 'purchase_success', res.name or 'vehicle'))
+        closeUI()
+    else
+        local key = (res and res.reason == 'vehicle_failed') and 'vehicle_failed' or 'not_enough_money'
+        ShopNotify('error', locale(key))
+    end
 end)
 
 RegisterNUICallback('testDrive', function(data, cb)

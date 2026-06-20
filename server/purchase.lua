@@ -103,7 +103,7 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
     busy[src] = true
     local ok, result = pcall(function()
         local price = entry.price
-        local props = { model = data.model }
+        local props = { model = data.model, dirtLevel = 0.0 }
         local paintType = PAINT[data.finish] or 0
         if validColor(data.colorPrimary) then
             props.color1 = { data.colorPrimary.r, data.colorPrimary.g, data.colorPrimary.b }
@@ -130,8 +130,7 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
             end
             Finance.create(Framework.GetCitizenId(src), vehicleId, price - down)
             Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId, props, entry.vehicleType)
-            Framework.Notify(src, locale('purchase_financed', entry.name), 'success')
-            return { ok = true }
+            return { ok = true, name = entry.name }
         end
 
         if not Framework.RemoveMoney(src, payment, price, 'vehicleshop-purchase') then
@@ -143,18 +142,12 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
             return { ok = false, reason = 'vehicle_failed' }
         end
         Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId, props, entry.vehicleType)
-        Framework.Notify(src, locale('purchase_success', entry.name), 'success')
-        return { ok = true }
+        return { ok = true, name = entry.name }
     end)
 
     busy[src] = nil
 
     if not ok then return { ok = false } end
-    if result.reason == 'not_enough_money' then
-        Framework.Notify(src, locale('not_enough_money'), 'error')
-    elseif result.reason == 'vehicle_failed' then
-        Framework.Notify(src, locale('vehicle_failed'), 'error')
-    end
     return result
 end)
 
