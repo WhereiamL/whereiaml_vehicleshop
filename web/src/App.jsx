@@ -1,21 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, ColorPicker, SegmentedControl, Tabs } from '@mantine/core';
+import {
+  Badge, Box, Button, Chip, ColorPicker, Group, Paper,
+  ScrollArea, SegmentedControl, Stack, Tabs, Text, Title, UnstyledButton,
+} from '@mantine/core';
 import { fetchNui } from './fetchNui.js';
 
 function hexToRgb(hex) {
   const v = hex.replace('#', '');
-  return {
-    r: parseInt(v.slice(0, 2), 16),
-    g: parseInt(v.slice(2, 4), 16),
-    b: parseInt(v.slice(4, 6), 16),
-  };
+  return { r: parseInt(v.slice(0, 2), 16), g: parseInt(v.slice(2, 4), 16), b: parseInt(v.slice(4, 6), 16) };
 }
-
 function rgbToHex(c) {
   const h = (n) => n.toString(16).padStart(2, '0');
   return `#${h(c.r)}${h(c.g)}${h(c.b)}`;
 }
-
 function money(n) {
   return '$' + Math.round(n).toLocaleString('en-US');
 }
@@ -87,31 +84,26 @@ export default function App() {
     setDoorsOpen({});
     fetchNui('selectVehicle', { model });
   }
-
   function changeColor(hex) {
     const rgb = hexToRgb(hex);
     if (colorTab === 'primary') setPrimary(hex);
     else setSecondary(hex);
     fetchNui('setColor', { slot: colorTab, color: rgb });
   }
-
   function toggleDoor(doorIndex) {
     const open = !doorsOpen[doorIndex];
     setDoorsOpen((d) => ({ ...d, [doorIndex]: open }));
     fetchNui('toggleDoor', { doorIndex, open });
   }
-
   async function buy() {
     if (buying || !current) return;
     setBuying(true);
     await fetchNui('buy', { model: current.model, payment });
     setBuying(false);
   }
-
   function testDrive() {
     if (current) fetchNui('testDrive', { model: current.model });
   }
-
   function close() {
     setVisible(false);
     fetchNui('close');
@@ -156,7 +148,7 @@ export default function App() {
   if (!visible || !data) return null;
 
   return (
-    <div className="shell">
+    <>
       <div
         className="stage"
         onPointerDown={onPointerDown}
@@ -165,130 +157,140 @@ export default function App() {
         onWheel={onWheel}
       />
 
-      <div className="panel left">
-        <div className="brandbar">
-          <div className="kicker">Dealership</div>
-          <div className="name">{data.dealership}</div>
-        </div>
-        <Tabs value={activeCat} onChange={setActiveCat} variant="pills" color="amber" px="xs" pt="xs">
-          <Tabs.List>
-            {present.map((c) => (
-              <Tabs.Tab key={c.id} value={c.id}>
-                {c.label}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-        </Tabs>
-        <div className="list">
-          {shown.map((c) => (
-            <div
-              key={c.model}
-              className={`car-row${c.model === selected ? ' active' : ''}`}
-              onClick={() => selectCar(c.model)}
+      <Box className="shell">
+        <Paper m="md" radius="md" w={380} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Box p="md">
+            <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 2 }}>
+              Dealership
+            </Text>
+            <Title order={4} c="white">{data.dealership}</Title>
+          </Box>
+
+          <Tabs value={activeCat} onChange={setActiveCat} variant="pills" px="xs">
+            <Tabs.List>
+              {present.map((c) => (
+                <Tabs.Tab key={c.id} value={c.id} size="xs">{c.label}</Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+
+          <ScrollArea style={{ flex: 1 }} p="xs">
+            <Stack gap={6}>
+              {shown.map((c) => {
+                const active = c.model === selected;
+                return (
+                  <UnstyledButton key={c.model} onClick={() => selectCar(c.model)}>
+                    <Paper
+                      p="xs"
+                      radius="sm"
+                      style={{
+                        backgroundColor: active ? 'rgba(34,139,230,0.15)' : 'rgba(255,255,255,0.02)',
+                        border: active ? '1px solid var(--mantine-color-blue-6)' : '1px solid transparent',
+                      }}
+                    >
+                      <Group justify="space-between" wrap="nowrap">
+                        <Box style={{ minWidth: 0 }}>
+                          <Text size="xs" c="dimmed" tt="uppercase">{c.brand}</Text>
+                          <Text size="sm" fw={600} c="white" truncate>{c.name}</Text>
+                        </Box>
+                        <Text size="sm" fw={700} c="blue.4">{money(c.price)}</Text>
+                      </Group>
+                    </Paper>
+                  </UnstyledButton>
+                );
+              })}
+            </Stack>
+          </ScrollArea>
+        </Paper>
+
+        <Paper m="md" radius="md" w={420} p="md">
+          <Stack gap="md" h="100%">
+            <Box
+              h={150}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: 8,
+                background: 'radial-gradient(ellipse at center, rgba(34,139,230,0.10), transparent 70%)',
+              }}
             >
-              <div className="meta">
-                <div className="brand">{c.brand}</div>
-                <div className="model">{c.name}</div>
-              </div>
-              <div className="price">{money(c.price)}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+              {current && !imgError[current.model] ? (
+                <img
+                  src={`../images/${current.model}.png`}
+                  alt={current.name}
+                  onError={() => setImgError((m) => ({ ...m, [current.model]: true }))}
+                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', filter: 'drop-shadow(0 16px 20px rgba(0,0,0,0.6))' }}
+                />
+              ) : (
+                <Text size="48px" c="dimmed">🚗</Text>
+              )}
+            </Box>
 
-      <div className="panel right">
-        <div className="hero">
-          {current && !imgError[current.model] ? (
-            <img
-              src={`../images/${current.model}.png`}
-              alt={current.name}
-              onError={() => setImgError((m) => ({ ...m, [current.model]: true }))}
-            />
-          ) : (
-            <div className="placeholder">🚗</div>
-          )}
-        </div>
+            {current && (
+              <Group justify="space-between" align="flex-end">
+                <Box>
+                  <Text size="xs" c="dimmed" tt="uppercase">{current.brand}</Text>
+                  <Title order={3} c="white">{current.name}</Title>
+                </Box>
+                <Text size="xl" fw={800} c="blue.4">{money(current.price)}</Text>
+              </Group>
+            )}
 
-        {current && (
-          <div className="title-row">
-            <div>
-              <div className="t-brand">{current.brand}</div>
-              <div className="t-model">{current.name}</div>
-            </div>
-            <div className="t-price">{money(current.price)}</div>
-          </div>
-        )}
+            <Box>
+              <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6} style={{ letterSpacing: 1 }}>Doors</Text>
+              <Group gap={6}>
+                {data.doors.map((d) => (
+                  <Chip
+                    key={d.doorIndex}
+                    size="xs"
+                    checked={!!doorsOpen[d.doorIndex]}
+                    onChange={() => toggleDoor(d.doorIndex)}
+                  >
+                    {d.label}
+                  </Chip>
+                ))}
+              </Group>
+            </Box>
 
-        <div>
-          <div className="section-label">Doors</div>
-          <div className="doors">
-            {data.doors.map((d) => (
-              <div
-                key={d.doorIndex}
-                className={`door-chip${doorsOpen[d.doorIndex] ? ' open' : ''}`}
-                onClick={() => toggleDoor(d.doorIndex)}
-              >
-                {d.label}
-              </div>
-            ))}
-          </div>
-        </div>
+            <Box>
+              <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6} style={{ letterSpacing: 1 }}>Paint</Text>
+              <SegmentedControl
+                fullWidth size="xs" mb="xs"
+                value={colorTab} onChange={setColorTab}
+                data={[{ label: 'Primary', value: 'primary' }, { label: 'Secondary', value: 'secondary' }]}
+              />
+              <ColorPicker
+                fullWidth format="hex"
+                value={colorTab === 'primary' ? primary : secondary}
+                onChange={changeColor}
+                swatches={['#780000', '#141414', '#ffffff', '#c0c0c0', '#1d3557', '#2a9d8f', '#e9c46a', '#e76f51', '#6a4c93', '#000000']}
+              />
+            </Box>
 
-        <div>
-          <div className="section-label">Paint</div>
-          <SegmentedControl
-            fullWidth
-            size="xs"
-            color="amber"
-            value={colorTab}
-            onChange={setColorTab}
-            data={[
-              { label: 'Primary', value: 'primary' },
-              { label: 'Secondary', value: 'secondary' },
-            ]}
-            mb="xs"
-          />
-          <ColorPicker
-            fullWidth
-            format="hex"
-            value={colorTab === 'primary' ? primary : secondary}
-            onChange={changeColor}
-            swatches={['#780000', '#141414', '#ffffff', '#c0c0c0', '#1d3557', '#2a9d8f', '#e9c46a', '#e76f51', '#6a4c93', '#000000']}
-          />
-        </div>
+            <Box>
+              <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb={6} style={{ letterSpacing: 1 }}>Payment</Text>
+              <SegmentedControl
+                fullWidth value={payment} onChange={setPayment}
+                data={data.payments
+                  .filter((p) => p !== 'finance' || data.finance.enabled)
+                  .map((p) => ({ label: PAYMENT_LABELS[p] || p, value: p }))}
+              />
+              {financeInfo && (
+                <Text size="xs" c="dimmed" mt={6}>
+                  {money(financeInfo.down)} down · {money(financeInfo.per)} × {financeInfo.count} payments
+                </Text>
+              )}
+            </Box>
 
-        <div>
-          <div className="section-label">Payment</div>
-          <SegmentedControl
-            fullWidth
-            color="amber"
-            value={payment}
-            onChange={setPayment}
-            data={data.payments
-              .filter((p) => p !== 'finance' || data.finance.enabled)
-              .map((p) => ({ label: PAYMENT_LABELS[p] || p, value: p }))}
-          />
-          {financeInfo && (
-            <div style={{ fontSize: 12, color: '#8c93a3', marginTop: 6 }}>
-              {money(financeInfo.down)} down · {money(financeInfo.per)} × {financeInfo.count} payments
-            </div>
-          )}
-        </div>
-
-        <div className="actions">
-          <Button variant="default" onClick={testDrive} fullWidth>
-            Test Drive
-          </Button>
-          <Button color="amber" onClick={buy} loading={buying} fullWidth>
-            {payment === 'finance' ? 'Finance' : 'Buy'}
-          </Button>
-        </div>
-        <Button variant="subtle" color="gray" size="xs" onClick={close}>
-          Close (ESC)
-        </Button>
-      </div>
+            <Group gap="xs" mt="auto" grow>
+              <Button variant="default" onClick={testDrive}>Test Drive</Button>
+              <Button onClick={buy} loading={buying}>{payment === 'finance' ? 'Finance' : 'Buy'}</Button>
+            </Group>
+            <Button variant="subtle" color="gray" size="xs" onClick={close}>Close (ESC)</Button>
+          </Stack>
+        </Paper>
+      </Box>
 
       <div className="hint">Drag to rotate · Scroll to zoom</div>
-    </div>
+    </>
   );
 }

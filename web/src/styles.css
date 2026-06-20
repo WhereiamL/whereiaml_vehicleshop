@@ -1,4 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
 * { box-sizing: border-box; }
+
+html {
+  color-scheme: normal !important;
+}
 
 html, body, #root {
   margin: 0;
@@ -7,16 +13,6 @@ html, body, #root {
   overflow: hidden;
   background: transparent !important;
   user-select: none;
-}
-
-.shell {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-  font-family: Inter, "Segoe UI", sans-serif;
-  color: #e9ecf2;
 }
 
 .stage {
@@ -28,154 +24,16 @@ html, body, #root {
 }
 .stage.dragging { cursor: grabbing; }
 
-.panel {
-  position: relative;
+.shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  pointer-events: none;
   z-index: 1;
-  pointer-events: auto;
-  background: linear-gradient(180deg, rgba(17,19,26,0.96) 0%, rgba(12,13,18,0.97) 100%);
-  border: 1px solid rgba(240,180,41,0.14);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.55);
 }
-
-.left {
-  width: 380px;
-  margin: 24px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.brandbar {
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: linear-gradient(180deg, rgba(240,180,41,0.10), transparent);
-}
-.brandbar .kicker {
-  font-size: 11px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #f0b429;
-  font-weight: 700;
-}
-.brandbar .name {
-  font-size: 20px;
-  font-weight: 800;
-  margin-top: 2px;
-}
-
-.list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-}
-.list::-webkit-scrollbar { width: 8px; }
-.list::-webkit-scrollbar-thumb { background: rgba(240,180,41,0.3); border-radius: 4px; }
-
-.car-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: background 0.12s, border-color 0.12s;
-}
-.car-row:hover { background: rgba(255,255,255,0.04); }
-.car-row.active {
-  background: rgba(240,180,41,0.12);
-  border-color: rgba(240,180,41,0.5);
-}
-.car-row .meta { flex: 1; min-width: 0; }
-.car-row .brand {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #8c93a3;
-}
-.car-row .model {
-  font-size: 15px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.car-row .price {
-  font-size: 13px;
-  font-weight: 700;
-  color: #f0b429;
-}
-
-.right {
-  width: 420px;
-  margin: 24px;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  padding: 22px;
-  gap: 16px;
-}
-
-.hero {
-  position: relative;
-  height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(ellipse at center, rgba(240,180,41,0.08), transparent 70%);
-  border-radius: 6px;
-}
-.hero img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 18px 22px rgba(0,0,0,0.6));
-}
-.hero .placeholder {
-  font-size: 56px;
-  color: rgba(255,255,255,0.12);
-}
-
-.title-row { display: flex; justify-content: space-between; align-items: flex-end; }
-.title-row .t-brand {
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #8c93a3;
-}
-.title-row .t-model { font-size: 24px; font-weight: 800; line-height: 1.1; }
-.title-row .t-price { font-size: 22px; font-weight: 800; color: #f0b429; }
-
-.section-label {
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #8c93a3;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.doors { display: flex; flex-wrap: wrap; gap: 8px; }
-.door-chip {
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.03);
-  cursor: pointer;
-  color: #c7ccd6;
-}
-.door-chip.open {
-  border-color: rgba(240,180,41,0.6);
-  background: rgba(240,180,41,0.14);
-  color: #f0b429;
-}
-
-.colors { display: flex; gap: 18px; }
-.color-block { flex: 1; }
-
-.actions { display: flex; gap: 10px; margin-top: auto; }
+.shell > * { pointer-events: auto; }
 
 .hint {
   position: fixed;
@@ -186,8 +44,8 @@ html, body, #root {
   pointer-events: none;
   font-size: 12px;
   letter-spacing: 1px;
-  color: rgba(255,255,255,0.5);
-  background: rgba(12,13,18,0.7);
-  padding: 6px 14px;
+  color: rgba(255,255,255,0.55);
+  background: rgba(24,24,27,0.85);
+  padding: 6px 16px;
   border-radius: 20px;
 }

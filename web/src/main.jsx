@@ -4,19 +4,31 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import '@mantine/core/styles.css';
 import './styles.css';
 import App from './App.jsx';
+import { isBrowser } from './fetchNui.js';
 
 const theme = createTheme({
-  fontFamily: 'Inter, "Segoe UI", sans-serif',
-  primaryColor: 'amber',
-  primaryShade: 6,
-  defaultRadius: 'sm',
-  colors: {
-    amber: [
-      '#fff8e1', '#ffecb3', '#ffe082', '#ffd54f', '#ffca28',
-      '#f0b429', '#d99e1f', '#b3801a', '#8c6314', '#66470d',
-    ],
+  fontFamily: 'Roboto, sans-serif',
+  primaryColor: 'blue',
+  defaultRadius: 'md',
+  components: {
+    Paper: {
+      defaultProps: { withBorder: false },
+      styles: {
+        root: {
+          backgroundColor: 'rgba(24, 24, 27, 0.95)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+        },
+      },
+    },
   },
 });
+
+if (isBrowser) {
+  const root = document.getElementById('root');
+  root.style.backgroundImage = 'url("https://i.imgur.com/vDGEfYg.jpeg")';
+  root.style.backgroundSize = 'cover';
+  root.style.backgroundPosition = 'center';
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
