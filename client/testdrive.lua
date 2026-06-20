@@ -32,13 +32,20 @@ function TestDrive.stop()
 end
 
 function TestDrive.start(model, dealership, colorPrimary, colorSecondary)
-    if active then return end
+    if active then return false end
 
     local hash = joaat(model)
-    if not lib.requestModel(hash, 10000) then return end
+    if not lib.requestModel(hash, 10000) then
+        Framework.Notify(locale('testdrive_failed'), 'error')
+        return false
+    end
 
     active = true
     dealershipRef = dealership
+
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close' })
+    Showroom.close()
 
     local sp = dealership.testdrive or dealership.spawn
     veh = CreateVehicle(hash, sp.x, sp.y, sp.z, sp.w, true, false)
@@ -63,11 +70,13 @@ function TestDrive.start(model, dealership, colorPrimary, colorSecondary)
                 lastSec = remaining
                 SendNUIMessage({ action = 'testdrive', state = 'tick', total = cfg.duration, seconds = remaining })
             end
-            if IsControlJustPressed(0, 73) then break end
+            if IsControlJustPressed(0, 73) or IsEntityDead(ped) then break end
             Wait(0)
         end
         TestDrive.stop()
     end)
+
+    return true
 end
 
 function TestDrive.isActive()

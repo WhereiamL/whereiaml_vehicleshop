@@ -139,6 +139,8 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
     if not ok then return { ok = false } end
     if result.reason == 'not_enough_money' then
         Framework.Notify(src, locale('not_enough_money'), 'error')
+    elseif result.reason == 'vehicle_failed' then
+        Framework.Notify(src, locale('vehicle_failed'), 'error')
     end
     return result
 end)

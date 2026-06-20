@@ -54,28 +54,35 @@ RegisterNUICallback('close', function(_, cb)
 end)
 
 RegisterNUICallback('rotate', function(data, cb)
-    Showroom.rotate(data.dx + 0.0, data.dy + 0.0)
     cb(1)
+    if type(data) ~= 'table' or type(data.dx) ~= 'number' or type(data.dy) ~= 'number' then return end
+    Showroom.rotate(data.dx + 0.0, data.dy + 0.0)
 end)
 
 RegisterNUICallback('zoom', function(data, cb)
-    Showroom.zoom(data.delta + 0.0)
     cb(1)
+    if type(data) ~= 'table' or type(data.delta) ~= 'number' then return end
+    Showroom.zoom(data.delta + 0.0)
 end)
 
 RegisterNUICallback('selectVehicle', function(data, cb)
-    Showroom.setModel(data.model)
     cb(1)
+    if type(data) ~= 'table' or type(data.model) ~= 'string' then return end
+    Showroom.setModel(data.model)
 end)
 
 RegisterNUICallback('setColor', function(data, cb)
-    Showroom.setColor(data.slot, { r = data.color.r, g = data.color.g, b = data.color.b })
     cb(1)
+    if type(data) ~= 'table' or type(data.color) ~= 'table' then return end
+    local c = data.color
+    if type(c.r) ~= 'number' or type(c.g) ~= 'number' or type(c.b) ~= 'number' then return end
+    Showroom.setColor(data.slot, { r = c.r, g = c.g, b = c.b })
 end)
 
 RegisterNUICallback('toggleDoor', function(data, cb)
-    Showroom.setDoor(data.doorIndex, data.open)
     cb(1)
+    if type(data) ~= 'table' or type(data.doorIndex) ~= 'number' then return end
+    Showroom.setDoor(data.doorIndex, data.open == true)
 end)
 
 RegisterNUICallback('buy', function(data, cb)
@@ -93,12 +100,10 @@ RegisterNUICallback('buy', function(data, cb)
 end)
 
 RegisterNUICallback('testDrive', function(data, cb)
+    cb(1)
+    if type(data) ~= 'table' or type(data.model) ~= 'string' then return end
     local dealership = Showroom.getDealership()
     local cp, cs = Showroom.getColors()
-    cb(1)
-    SetNuiFocus(false, false)
-    SendNUIMessage({ action = 'close' })
-    Showroom.close()
     TestDrive.start(data.model, dealership, cp, cs)
 end)
 
