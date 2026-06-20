@@ -143,6 +143,14 @@ function Framework.SpawnOwnedVehicle(src, model, plate, coords, vehicleId)
             exports.qbx_vehiclekeys:GiveKeys(src, veh)
         end
         return true
+    elseif Framework.name == 'esx' then
+        local veh = CreateVehicleServerSetter(model, 'automobile', coords.x, coords.y, coords.z, coords.w)
+        local started = GetGameTimer()
+        while not DoesEntityExist(veh) and GetGameTimer() - started < 5000 do Wait(0) end
+        if not DoesEntityExist(veh) then return false end
+        if plate then SetVehicleNumberPlateText(veh, plate) end
+        if vehicleId then Entity(veh).state:set('vehicleid', vehicleId, false) end
+        return true
     end
     return false
 end

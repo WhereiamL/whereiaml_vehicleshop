@@ -85,6 +85,12 @@ RegisterNUICallback('toggleDoor', function(data, cb)
     Showroom.setDoor(data.doorIndex, data.open == true)
 end)
 
+RegisterNUICallback('setFinish', function(data, cb)
+    cb(1)
+    if type(data) ~= 'table' or type(data.finish) ~= 'string' then return end
+    Showroom.setFinish(data.finish)
+end)
+
 RegisterNUICallback('buy', function(data, cb)
     local dealership = Showroom.getDealership()
     local cp, cs = Showroom.getColors()
@@ -94,6 +100,7 @@ RegisterNUICallback('buy', function(data, cb)
         dealership = dealership.id,
         colorPrimary = cp,
         colorSecondary = cs,
+        finish = Showroom.getFinish(),
     })
     cb(res or { ok = false })
     if res and res.ok then closeUI() end
@@ -104,7 +111,7 @@ RegisterNUICallback('testDrive', function(data, cb)
     if type(data) ~= 'table' or type(data.model) ~= 'string' then return end
     local dealership = Showroom.getDealership()
     local cp, cs = Showroom.getColors()
-    TestDrive.start(data.model, dealership, cp, cs)
+    TestDrive.start(data.model, dealership, cp, cs, Showroom.getFinish())
 end)
 
 RegisterNUICallback('getFinances', function(_, cb)

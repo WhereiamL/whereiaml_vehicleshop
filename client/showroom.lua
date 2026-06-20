@@ -8,19 +8,25 @@ local dealership
 local preview
 local restoreCoords
 local restoreHeading
+local PAINT <const> = { gloss = 0, metallic = 1, pearl = 2, matte = 3 }
+
 local state = {
     heading = 0.0,
     targetHeading = 0.0,
     pitch = cam.pitch,
     distance = cam.distance,
     camHandle = nil,
+    finish = 'gloss',
     colorPrimary = { r = 120, g = 0, b = 0 },
     colorSecondary = { r = 20, g = 20, b = 20 },
 }
 
 local function applyColor()
     if not preview or not DoesEntityExist(preview) then return end
+    local pt = PAINT[state.finish] or 0
     SetVehicleModKit(preview, 0)
+    SetVehicleModColor_1(preview, pt, 0, 0)
+    SetVehicleModColor_2(preview, pt, 0)
     SetVehicleCustomPrimaryColour(preview, state.colorPrimary.r, state.colorPrimary.g, state.colorPrimary.b)
     SetVehicleCustomSecondaryColour(preview, state.colorSecondary.r, state.colorSecondary.g, state.colorSecondary.b)
 end
@@ -97,6 +103,16 @@ function Showroom.setColor(slot, color)
     applyColor()
 end
 
+function Showroom.setFinish(finish)
+    if PAINT[finish] == nil then return end
+    state.finish = finish
+    applyColor()
+end
+
+function Showroom.getFinish()
+    return state.finish
+end
+
 function Showroom.setModel(model)
     spawnPreview(model)
 end
@@ -126,6 +142,8 @@ function Showroom.open(d, firstModel)
     DoScreenFadeOut(400)
     local fadeStart = GetGameTimer()
     while not IsScreenFadedOut() and GetGameTimer() - fadeStart < 1200 do Wait(0) end
+
+    lib.callback.await('whereiaml_vehicleshop:enterStudio', false)
 
     local ped = cache.ped or PlayerPedId()
     restoreCoords = GetEntityCoords(ped)
@@ -183,6 +201,8 @@ function Showroom.close()
         SetEntityCoords(ped, restoreCoords.x, restoreCoords.y, restoreCoords.z, false, false, false, false)
         SetEntityHeading(ped, restoreHeading or 0.0)
     end
+
+    TriggerServerEvent('whereiaml_vehicleshop:exitStudio')
 
     Wait(100)
     DoScreenFadeIn(400)

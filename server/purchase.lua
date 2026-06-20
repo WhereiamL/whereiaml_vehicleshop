@@ -50,6 +50,8 @@ end
 local busy = {}
 local cooldown = {}
 
+local PAINT <const> = { gloss = 0, metallic = 1, pearl = 2, matte = 3 }
+
 local function validColor(c)
     return type(c) == 'table'
         and type(c.r) == 'number' and c.r >= 0 and c.r <= 255
@@ -97,11 +99,14 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
     local ok, result = pcall(function()
         local price = entry.price
         local props = { model = data.model }
+        local paintType = PAINT[data.finish] or 0
         if validColor(data.colorPrimary) then
             props.color1 = { data.colorPrimary.r, data.colorPrimary.g, data.colorPrimary.b }
+            props.paintType1 = paintType
         end
         if validColor(data.colorSecondary) then
             props.color2 = { data.colorSecondary.r, data.colorSecondary.g, data.colorSecondary.b }
+            props.paintType2 = paintType
         end
 
         if payment == 'finance' then

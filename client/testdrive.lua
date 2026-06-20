@@ -1,6 +1,7 @@
 TestDrive = {}
 
 local cfg = Config.Client.testDrive
+local PAINT <const> = { gloss = 0, metallic = 1, pearl = 2, matte = 3 }
 local active = false
 local veh
 local dealershipRef
@@ -31,7 +32,7 @@ function TestDrive.stop()
     end
 end
 
-function TestDrive.start(model, dealership, colorPrimary, colorSecondary)
+function TestDrive.start(model, dealership, colorPrimary, colorSecondary, finish)
     if active then return false end
 
     local hash = joaat(model)
@@ -50,7 +51,11 @@ function TestDrive.start(model, dealership, colorPrimary, colorSecondary)
     local sp = dealership.testdrive or dealership.spawn
     veh = CreateVehicle(hash, sp.x, sp.y, sp.z, sp.w, true, false)
     SetModelAsNoLongerNeeded(hash)
+    SetEntityAsMissionEntity(veh, true, true)
     SetVehicleModKit(veh, 0)
+    local pt = PAINT[finish] or 0
+    SetVehicleModColor_1(veh, pt, 0, 0)
+    SetVehicleModColor_2(veh, pt, 0)
     if colorPrimary then SetVehicleCustomPrimaryColour(veh, colorPrimary.r, colorPrimary.g, colorPrimary.b) end
     if colorSecondary then SetVehicleCustomSecondaryColour(veh, colorSecondary.r, colorSecondary.g, colorSecondary.b) end
 

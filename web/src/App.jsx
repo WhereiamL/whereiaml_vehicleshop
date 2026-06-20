@@ -4,8 +4,8 @@ import {
   ScrollArea, SegmentedControl, Stack, Tabs, Text, ThemeIcon, Title, UnstyledButton,
 } from '@mantine/core';
 import {
-  IconBuildingStore, IconCreditCard, IconDoor, IconKey,
-  IconPaint, IconSteeringWheel, IconStopwatch,
+  IconBuildingStore, IconBrush, IconCreditCard, IconDoor, IconKey,
+  IconPaint, IconRotate360, IconSteeringWheel, IconStopwatch, IconZoomScan,
 } from '@tabler/icons-react';
 import { fetchNui } from './fetchNui.js';
 
@@ -78,6 +78,7 @@ export default function App() {
   const [primary, setPrimary] = useState('#780000');
   const [secondary, setSecondary] = useState('#141414');
   const [colorTab, setColorTab] = useState('primary');
+  const [finish, setFinish] = useState('gloss');
   const [doorsOpen, setDoorsOpen] = useState({});
   const [payment, setPayment] = useState('cash');
   const [imgError, setImgError] = useState({});
@@ -91,6 +92,7 @@ export default function App() {
     setActiveCat(sel ? sel.category : payload.catalog[0]?.category);
     setPrimary(rgbToHex(payload.colors.primary));
     setSecondary(rgbToHex(payload.colors.secondary));
+    setFinish('gloss');
     setDoorsOpen({});
     setPayment(payload.payments[0]);
     setVisible(true);
@@ -144,6 +146,10 @@ export default function App() {
     if (colorTab === 'primary') setPrimary(hex);
     else setSecondary(hex);
     fetchNui('setColor', { slot: colorTab, color: rgb });
+  }
+  function changeFinish(v) {
+    setFinish(v);
+    fetchNui('setFinish', { finish: v });
   }
   function toggleDoor(doorIndex) {
     const open = !doorsOpen[doorIndex];
@@ -315,6 +321,20 @@ export default function App() {
                     onChange={changeColor}
                     swatches={['#780000', '#141414', '#ffffff', '#c0c0c0', '#1d3557', '#2a9d8f', '#e9c46a', '#e76f51', '#6a4c93', '#000000']}
                   />
+                  <Group gap={4} mt={8} mb={4}>
+                    <IconBrush size={13} color="var(--mantine-color-dimmed)" />
+                    <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 1 }}>Finish</Text>
+                  </Group>
+                  <SegmentedControl
+                    fullWidth size="xs"
+                    value={finish} onChange={changeFinish}
+                    data={[
+                      { label: 'Gloss', value: 'gloss' },
+                      { label: 'Metallic', value: 'metallic' },
+                      { label: 'Pearl', value: 'pearl' },
+                      { label: 'Matte', value: 'matte' },
+                    ]}
+                  />
                 </Box>
 
                 <Box>
@@ -342,7 +362,25 @@ export default function App() {
               </Stack>
             </Paper>
 
-            <div className="hint">Drag to rotate · Scroll to zoom</div>
+            <Paper
+              radius="md" px="sm" py={6}
+              style={{
+                position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+                pointerEvents: 'none', backgroundColor: 'rgba(24,24,27,0.9)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <Group gap="lg">
+                <Group gap={6}>
+                  <ThemeIcon size="sm" radius="sm" variant="light" color="blue"><IconRotate360 size={14} /></ThemeIcon>
+                  <Text size="xs" c="dimmed">Drag to rotate</Text>
+                </Group>
+                <Group gap={6}>
+                  <ThemeIcon size="sm" radius="sm" variant="light" color="blue"><IconZoomScan size={14} /></ThemeIcon>
+                  <Text size="xs" c="dimmed">Scroll to zoom</Text>
+                </Group>
+              </Group>
+            </Paper>
           </Box>
         </>
       )}

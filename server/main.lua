@@ -34,3 +34,18 @@ lib.callback.register('whereiaml_vehicleshop:getData', function()
         },
     }
 end)
+
+local STUDIO_BUCKET_BASE <const> = 6000
+
+lib.callback.register('whereiaml_vehicleshop:enterStudio', function(source)
+    SetPlayerRoutingBucket(source, STUDIO_BUCKET_BASE + source)
+    return true
+end)
+
+RegisterNetEvent('whereiaml_vehicleshop:exitStudio', function()
+    SetPlayerRoutingBucket(source, 0)
+end)
+
+AddEventHandler('playerDropped', function()
+    SetPlayerRoutingBucket(source, 0)
+end)
