@@ -62,8 +62,9 @@ local function spawnPreview(model)
     SetVehicleDoorsShut(preview, true)
     SetVehicleDirtLevel(preview, 0.0)
     SetVehicleOnGroundProperly(preview)
-    SetVehicleHandbrake(preview, true)
     SetVehicleEngineOn(preview, false, true, true)
+    FreezeEntityPosition(preview, true)
+    SetEntityCollision(preview, false, false)
     state.heading = p.w + 0.0
     state.targetHeading = p.w + 0.0
     SetEntityHeading(preview, state.heading)
@@ -73,14 +74,12 @@ end
 
 local function renderLoop()
     CreateThread(function()
-        local p = dealership.studio.podium
         while active do
             if preview and DoesEntityExist(preview) then
                 local diff = state.targetHeading - state.heading
                 while diff > 180 do diff = diff - 360 end
                 while diff < -180 do diff = diff + 360 end
                 state.heading = state.heading + diff * ctrl.rotateLerp
-                SetEntityCoordsNoOffset(preview, p.x, p.y, p.z, false, false, false)
                 SetEntityHeading(preview, state.heading)
             end
             updateCam()
@@ -145,15 +144,11 @@ function Showroom.setDoor(doorIndex, open)
         for i = 1, steps do
             if not active or doorTokens[doorIndex] ~= token or not DoesEntityExist(veh) then return end
             local r = open and (i / steps) or (1 - i / steps)
-            SetVehicleDoorControl(veh, doorIndex, 6.0, r)
-            Wait(15)
+            SetVehicleDoorControl(veh, doorIndex, 7, r)
+            Wait(14)
         end
         if doorTokens[doorIndex] ~= token or not DoesEntityExist(veh) then return end
-        if open then
-            SetVehicleDoorOpen(veh, doorIndex, false, false)
-        else
-            SetVehicleDoorShut(veh, doorIndex, false)
-        end
+        if not open then SetVehicleDoorShut(veh, doorIndex, false) end
     end)
 end
 

@@ -19,7 +19,7 @@ end
 local function createPed(d)
     local hash = joaat(d.ped)
     if not lib.requestModel(hash, 10000) then return end
-    local ped = CreatePed(0, hash, d.coords.x, d.coords.y, d.coords.z - 1.0, d.coords.w, false, false)
+    local ped = CreatePed(0, hash, d.coords.x, d.coords.y, d.coords.z, d.coords.w, false, false)
     SetModelAsNoLongerNeeded(hash)
     SetEntityInvincible(ped, true)
     FreezeEntityPosition(ped, true)

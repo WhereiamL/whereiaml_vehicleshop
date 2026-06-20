@@ -6,6 +6,11 @@ Config.Server = {
     -- 'cash' / 'bank' map to framework money types. 'finance' enables loans below.
     paymentMethods = { 'cash', 'bank', 'finance' },
 
+    -- Allow bank payments to overdraw into a negative balance.
+    -- false (recommended) = the purchase/installment is blocked if the bank balance is too low.
+    -- true = the player can go into the minus.
+    allowBankOverdraft = false,
+
     finance = {
         enabled = true,
         minDownPercent = 20,   -- minimum down payment (% of price) the buyer must pay up front

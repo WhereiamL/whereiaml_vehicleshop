@@ -53,6 +53,13 @@ local cooldown = {}
 
 local PAINT <const> = { gloss = 0, metallic = 1, pearl = 2, matte = 3 }
 
+local function canAfford(src, moneyType, amount)
+    if moneyType == 'bank' and not Config.Server.allowBankOverdraft then
+        return Framework.GetMoney(src, 'bank') >= amount
+    end
+    return true
+end
+
 local function validColor(c)
     return type(c) == 'table'
         and type(c.r) == 'number' and c.r >= 0 and c.r <= 255
@@ -120,6 +127,9 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
         if payment == 'finance' then
             local cfg = Config.Server.finance
             local down = math.floor(price * cfg.minDownPercent / 100)
+            if not canAfford(src, cfg.downPaymentFrom, down) then
+                return { ok = false, reason = 'not_enough_money' }
+            end
             if not Framework.RemoveMoney(src, cfg.downPaymentFrom, down, 'vehicleshop-down') then
                 return { ok = false, reason = 'not_enough_money' }
             end
@@ -133,6 +143,9 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
             return { ok = true, name = entry.name }
         end
 
+        if not canAfford(src, payment, price) then
+            return { ok = false, reason = 'not_enough_money' }
+        end
         if not Framework.RemoveMoney(src, payment, price, 'vehicleshop-purchase') then
             return { ok = false, reason = 'not_enough_money' }
         end

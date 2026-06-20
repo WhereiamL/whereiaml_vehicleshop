@@ -20,7 +20,10 @@ local function collect()
         local src = Framework.GetSrcByCitizenId(row.citizenid)
         if src then
             local pay = math.min(row.payment_amount, row.balance)
-            if Framework.RemoveMoney(src, cfg.installmentFrom, pay, 'vehicleshop-finance') then
+            local afford = cfg.installmentFrom ~= 'bank'
+                or Config.Server.allowBankOverdraft
+                or Framework.GetMoney(src, 'bank') >= pay
+            if afford and Framework.RemoveMoney(src, cfg.installmentFrom, pay, 'vehicleshop-finance') then
                 local balance = row.balance - pay
                 local left = row.payments_left - 1
                 if left <= 0 or balance <= 0 then
