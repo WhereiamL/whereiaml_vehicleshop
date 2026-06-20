@@ -116,7 +116,7 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
             end
             local vehicleId = Framework.GiveVehicle(src, data.model, props)
             if not vehicleId then
-                Framework.RemoveMoney(src, cfg.downPaymentFrom, -down, 'vehicleshop-refund')
+                Framework.AddMoney(src, cfg.downPaymentFrom, down, 'vehicleshop-refund')
                 return { ok = false, reason = 'vehicle_failed' }
             end
             Finance.create(Framework.GetCitizenId(src), vehicleId, price - down)
@@ -129,7 +129,7 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
         end
         local vehicleId = Framework.GiveVehicle(src, data.model, props)
         if not vehicleId then
-            Framework.RemoveMoney(src, payment, -price, 'vehicleshop-refund')
+            Framework.AddMoney(src, payment, price, 'vehicleshop-refund')
             return { ok = false, reason = 'vehicle_failed' }
         end
         Framework.Notify(src, locale('purchase_success', entry.name), 'success')

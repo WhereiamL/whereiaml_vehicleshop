@@ -64,8 +64,8 @@ Config.Dealerships = {
         blip = { enabled = true, sprite = 326, color = 3, scale = 0.8 },
         categories = nil,
         studio = {
-            podium = vec4(-2000.0, 3200.0, 30.0, 90.0),
-            ped = vec3(-2003.5, 3198.0, 30.0),
+            podium = vec4(-1395.0, -3000.0, 13.95, 240.0),
+            ped = vec3(-1398.5, -3002.5, 13.95),
         },
         spawn = vec4(-44.27, -1098.0, 26.42, 70.0),
     },

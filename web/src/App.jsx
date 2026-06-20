@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, ColorPicker, SegmentedControl, Tabs } from '@mantine/core';
-import { fetchNui, isBrowser } from './fetchNui.js';
+import { fetchNui } from './fetchNui.js';
 
 function hexToRgb(hex) {
   const v = hex.replace('#', '');
@@ -21,30 +21,6 @@ function money(n) {
 }
 
 const PAYMENT_LABELS = { cash: 'Cash', bank: 'Bank', finance: 'Finance' };
-
-const MOCK = {
-  catalog: [
-    { model: 'adder', name: 'Adder', brand: 'Truffade', price: 1000000, category: 'super' },
-    { model: 'sultan', name: 'Sultan', brand: 'Karin', price: 45000, category: 'sports' },
-    { model: 'blista', name: 'Blista', brand: 'Dinka', price: 16000, category: 'compacts' },
-  ],
-  categories: [
-    { id: 'compacts', label: 'Compacts' },
-    { id: 'sports', label: 'Sports' },
-    { id: 'super', label: 'Super' },
-  ],
-  doors: [
-    { doorIndex: 4, label: 'Hood' },
-    { doorIndex: 5, label: 'Trunk' },
-    { doorIndex: 0, label: 'Door FL' },
-    { doorIndex: 1, label: 'Door FR' },
-  ],
-  payments: ['cash', 'bank', 'finance'],
-  finance: { enabled: true, downPercent: 20, interestPercent: 10, maxPayments: 12 },
-  dealership: 'Premium Deluxe Motorsport',
-  colors: { primary: { r: 120, g: 0, b: 0 }, secondary: { r: 20, g: 20, b: 20 } },
-  selected: 'adder',
-};
 
 export default function App() {
   const [visible, setVisible] = useState(false);
@@ -79,7 +55,6 @@ export default function App() {
       else if (msg.action === 'close') setVisible(false);
     }
     window.addEventListener('message', handler);
-    if (isBrowser) applyOpen(MOCK);
     return () => window.removeEventListener('message', handler);
   }, []);
 

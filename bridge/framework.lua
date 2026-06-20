@@ -83,6 +83,19 @@ function Framework.RemoveMoney(src, moneyType, amount, reason)
     return false
 end
 
+function Framework.AddMoney(src, moneyType, amount, reason)
+    if Framework.name == 'qbx' then
+        local player = exports.qbx_core:GetPlayer(src)
+        return player and player.Functions.AddMoney(moneyType, amount, reason) or false
+    elseif Framework.name == 'esx' then
+        local xPlayer = Framework.esx.GetPlayerFromId(src)
+        if not xPlayer then return false end
+        xPlayer.addAccountMoney(moneyType == 'cash' and 'money' or moneyType, amount)
+        return true
+    end
+    return false
+end
+
 ---@param src number
 ---@param model string
 ---@param props table ox_lib vehicle properties (color1/color2 = {r,g,b})

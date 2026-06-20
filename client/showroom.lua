@@ -7,6 +7,7 @@ local active = false
 local dealership
 local preview
 local restoreCoords
+local restoreHeading
 local state = {
     heading = 0.0,
     targetHeading = 0.0,
@@ -122,10 +123,25 @@ function Showroom.open(d, firstModel)
     dealership = d
     active = true
 
+    DoScreenFadeOut(400)
+    local fadeStart = GetGameTimer()
+    while not IsScreenFadedOut() and GetGameTimer() - fadeStart < 1200 do Wait(0) end
+
     local ped = cache.ped or PlayerPedId()
     restoreCoords = GetEntityCoords(ped)
+    restoreHeading = GetEntityHeading(ped)
+
+    local p = dealership.studio.podium
     local s = dealership.studio.ped
     SetEntityCoords(ped, s.x, s.y, s.z, false, false, false, false)
+
+    RequestCollisionAtCoord(p.x, p.y, p.z)
+    local loadStart = GetGameTimer()
+    while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() - loadStart < 5000 do
+        RequestCollisionAtCoord(p.x, p.y, p.z)
+        Wait(10)
+    end
+
     FreezeEntityPosition(ped, true)
     SetEntityVisible(ped, false, false)
 
@@ -138,11 +154,18 @@ function Showroom.open(d, firstModel)
 
     spawnPreview(firstModel)
     renderLoop()
+
+    Wait(150)
+    DoScreenFadeIn(500)
 end
 
 function Showroom.close()
     if not active then return end
     active = false
+
+    DoScreenFadeOut(300)
+    local fadeStart = GetGameTimer()
+    while not IsScreenFadedOut() and GetGameTimer() - fadeStart < 800 do Wait(0) end
 
     if preview and DoesEntityExist(preview) then DeleteEntity(preview) end
     preview = nil
@@ -158,7 +181,11 @@ function Showroom.close()
     FreezeEntityPosition(ped, false)
     if restoreCoords then
         SetEntityCoords(ped, restoreCoords.x, restoreCoords.y, restoreCoords.z, false, false, false, false)
+        SetEntityHeading(ped, restoreHeading or 0.0)
     end
+
+    Wait(100)
+    DoScreenFadeIn(400)
 end
 
 function Showroom.isActive()
