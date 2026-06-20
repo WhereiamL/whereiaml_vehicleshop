@@ -108,6 +108,9 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
             props.color2 = { data.colorSecondary.r, data.colorSecondary.g, data.colorSecondary.b }
             props.paintType2 = paintType
         end
+        if type(data.pearl) == 'number' and data.pearl >= 0 and data.pearl <= 160 then
+            props.pearlescentColor = math.floor(data.pearl)
+        end
 
         if payment == 'finance' then
             local cfg = Config.Server.finance

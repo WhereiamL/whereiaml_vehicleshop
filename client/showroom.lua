@@ -17,6 +17,7 @@ local state = {
     distance = cam.distance,
     camHandle = nil,
     finish = 'gloss',
+    pearl = 0,
     colorPrimary = { r = 120, g = 0, b = 0 },
     colorSecondary = { r = 20, g = 20, b = 20 },
 }
@@ -29,6 +30,8 @@ local function applyColor()
     SetVehicleModColor_2(preview, pt, 0)
     SetVehicleCustomPrimaryColour(preview, state.colorPrimary.r, state.colorPrimary.g, state.colorPrimary.b)
     SetVehicleCustomSecondaryColour(preview, state.colorSecondary.r, state.colorSecondary.g, state.colorSecondary.b)
+    local _, wheel = GetVehicleExtraColours(preview)
+    SetVehicleExtraColours(preview, state.pearl, wheel)
 end
 
 local function center()
@@ -111,6 +114,16 @@ end
 
 function Showroom.getFinish()
     return state.finish
+end
+
+function Showroom.setPearl(index)
+    if type(index) ~= 'number' or index < 0 or index > 160 then return end
+    state.pearl = math.floor(index)
+    applyColor()
+end
+
+function Showroom.getPearl()
+    return state.pearl
 end
 
 function Showroom.setModel(model)

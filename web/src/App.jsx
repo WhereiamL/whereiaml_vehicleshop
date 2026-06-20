@@ -8,6 +8,8 @@ import {
   IconPaint, IconRotate360, IconSteeringWheel, IconStopwatch, IconZoomScan,
 } from '@tabler/icons-react';
 import { fetchNui } from './fetchNui.js';
+import { sfx } from './sound.js';
+import { PEARL_COLORS } from './pearlColors.js';
 
 function hexToRgb(hex) {
   const v = hex.replace('#', '');
@@ -39,6 +41,7 @@ function TestDriveBox({ td }) {
   const pct = td.total ? Math.max(0, (td.seconds / td.total) * 100) : 0;
   return (
     <Paper
+      className="td-box"
       p="sm"
       radius="md"
       withBorder
@@ -79,6 +82,7 @@ export default function App() {
   const [secondary, setSecondary] = useState('#141414');
   const [colorTab, setColorTab] = useState('primary');
   const [finish, setFinish] = useState('gloss');
+  const [pearl, setPearl] = useState(0);
   const [doorsOpen, setDoorsOpen] = useState({});
   const [payment, setPayment] = useState('cash');
   const [imgError, setImgError] = useState({});
@@ -93,6 +97,7 @@ export default function App() {
     setPrimary(rgbToHex(payload.colors.primary));
     setSecondary(rgbToHex(payload.colors.secondary));
     setFinish('gloss');
+    setPearl(0);
     setDoorsOpen({});
     setPayment(payload.payments[0]);
     setVisible(true);
@@ -137,6 +142,7 @@ export default function App() {
   );
 
   function selectCar(model) {
+    sfx.select();
     setSelected(model);
     setDoorsOpen({});
     fetchNui('selectVehicle', { model });
@@ -148,24 +154,35 @@ export default function App() {
     fetchNui('setColor', { slot: colorTab, color: rgb });
   }
   function changeFinish(v) {
+    sfx.click();
     setFinish(v);
     fetchNui('setFinish', { finish: v });
   }
+  function changePearl(i) {
+    sfx.click();
+    setPearl(i);
+    fetchNui('setPearl', { index: i });
+  }
   function toggleDoor(doorIndex) {
+    sfx.click();
     const open = !doorsOpen[doorIndex];
     setDoorsOpen((d) => ({ ...d, [doorIndex]: open }));
     fetchNui('toggleDoor', { doorIndex, open });
   }
   async function buy() {
     if (buying || !current) return;
+    sfx.success();
     setBuying(true);
     await fetchNui('buy', { model: current.model, payment });
     setBuying(false);
   }
   function testDrive() {
-    if (current) fetchNui('testDrive', { model: current.model });
+    if (!current) return;
+    sfx.click();
+    fetchNui('testDrive', { model: current.model });
   }
   function close() {
+    sfx.tick();
     setVisible(false);
     fetchNui('close');
   }
@@ -219,7 +236,7 @@ export default function App() {
           />
 
           <Box className="shell">
-            <Paper m="md" radius="md" w={380} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <Paper className="panel-left" m="md" radius="md" w={380} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <Group p="md" gap="sm" wrap="nowrap">
                 <ThemeIcon size={40} radius="md" variant="light" color="blue"><IconBuildingStore size={22} /></ThemeIcon>
                 <Box>
@@ -228,7 +245,7 @@ export default function App() {
                 </Box>
               </Group>
 
-              <Tabs value={activeCat} onChange={setActiveCat} variant="pills" px="xs">
+              <Tabs value={activeCat} onChange={(v) => { sfx.tick(); setActiveCat(v); }} variant="pills" px="xs">
                 <Tabs.List>
                   {present.map((c) => (
                     <Tabs.Tab key={c.id} value={c.id} size="xs">{c.label}</Tabs.Tab>
@@ -243,6 +260,7 @@ export default function App() {
                     return (
                       <UnstyledButton key={c.model} onClick={() => selectCar(c.model)}>
                         <Paper
+                          className="car-row-anim"
                           p="xs"
                           radius="sm"
                           style={{
@@ -265,7 +283,7 @@ export default function App() {
               </ScrollArea>
             </Paper>
 
-            <Paper m="md" radius="md" w={420} p="md">
+            <Paper className="panel-right" m="md" radius="md" w={420} p="md">
               <Stack gap="md" h="100%">
                 <Box
                   h={150}
@@ -277,6 +295,8 @@ export default function App() {
                 >
                   {current && !imgError[current.model] ? (
                     <img
+                      key={current.model}
+                      className="car-img"
                       src={`../images/${current.model}.png`}
                       alt={current.name}
                       onError={() => setImgError((m) => ({ ...m, [current.model]: true }))}
@@ -312,15 +332,41 @@ export default function App() {
                   <SectionLabel icon={<IconPaint size={14} />}>Paint</SectionLabel>
                   <SegmentedControl
                     fullWidth size="xs" mb="xs"
-                    value={colorTab} onChange={setColorTab}
-                    data={[{ label: 'Primary', value: 'primary' }, { label: 'Secondary', value: 'secondary' }]}
+                    value={colorTab} onChange={(v) => { sfx.tick(); setColorTab(v); }}
+                    data={[
+                      { label: 'Primary', value: 'primary' },
+                      { label: 'Secondary', value: 'secondary' },
+                      { label: 'Pearl', value: 'pearl' },
+                    ]}
                   />
-                  <ColorPicker
-                    fullWidth format="hex"
-                    value={colorTab === 'primary' ? primary : secondary}
-                    onChange={changeColor}
-                    swatches={['#780000', '#141414', '#ffffff', '#c0c0c0', '#1d3557', '#2a9d8f', '#e9c46a', '#e76f51', '#6a4c93', '#000000']}
-                  />
+                  {colorTab === 'pearl' ? (
+                    <ScrollArea h={132}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6, paddingRight: 8 }}>
+                        {PEARL_COLORS.map((c) => (
+                          <div
+                            key={c.i}
+                            className="swatch"
+                            title={c.n}
+                            onClick={() => changePearl(c.i)}
+                            style={{
+                              paddingTop: '100%',
+                              borderRadius: 4,
+                              cursor: 'pointer',
+                              background: c.hex,
+                              outline: pearl === c.i ? '2px solid var(--mantine-color-blue-5)' : '1px solid rgba(255,255,255,0.12)',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  ) : (
+                    <ColorPicker
+                      fullWidth format="hex"
+                      value={colorTab === 'primary' ? primary : secondary}
+                      onChange={changeColor}
+                      swatches={['#780000', '#141414', '#ffffff', '#c0c0c0', '#1d3557', '#2a9d8f', '#e9c46a', '#e76f51', '#6a4c93', '#000000']}
+                    />
+                  )}
                   <Group gap={4} mt={8} mb={4}>
                     <IconBrush size={13} color="var(--mantine-color-dimmed)" />
                     <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 1 }}>Finish</Text>
@@ -340,7 +386,7 @@ export default function App() {
                 <Box>
                   <SectionLabel icon={<IconCreditCard size={14} />}>Payment</SectionLabel>
                   <SegmentedControl
-                    fullWidth value={payment} onChange={setPayment}
+                    fullWidth value={payment} onChange={(v) => { sfx.click(); setPayment(v); }}
                     data={data.payments
                       .filter((p) => p !== 'finance' || data.finance.enabled)
                       .map((p) => ({ label: PAYMENT_LABELS[p] || p, value: p }))}
@@ -363,6 +409,7 @@ export default function App() {
             </Paper>
 
             <Paper
+              className="hint-box"
               radius="md" px="sm" py={6}
               style={{
                 position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',

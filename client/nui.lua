@@ -91,6 +91,12 @@ RegisterNUICallback('setFinish', function(data, cb)
     Showroom.setFinish(data.finish)
 end)
 
+RegisterNUICallback('setPearl', function(data, cb)
+    cb(1)
+    if type(data) ~= 'table' or type(data.index) ~= 'number' then return end
+    Showroom.setPearl(data.index)
+end)
+
 RegisterNUICallback('buy', function(data, cb)
     local dealership = Showroom.getDealership()
     local cp, cs = Showroom.getColors()
@@ -101,6 +107,7 @@ RegisterNUICallback('buy', function(data, cb)
         colorPrimary = cp,
         colorSecondary = cs,
         finish = Showroom.getFinish(),
+        pearl = Showroom.getPearl(),
     })
     cb(res or { ok = false })
     if res and res.ok then closeUI() end
