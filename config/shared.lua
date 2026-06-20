@@ -54,7 +54,8 @@ Config.Catalog = {
 --           dealership sells (nil = all categories).
 -- studio:   hidden showroom location the player is teleported to while browsing.
 --           podium = vec4 where the preview vehicle is placed (heading is its start facing).
--- spawn:    vec4 where a purchased / test-drive vehicle is delivered in the real world.
+-- spawn:    vec4 where a purchased vehicle is delivered in the real world.
+-- testdrive: vec4 where the test-drive vehicle spawns (e.g. an open runway/strip to drive freely).
 Config.Dealerships = {
     {
         id = 'pdm',
@@ -68,6 +69,7 @@ Config.Dealerships = {
             ped = vec3(-1398.5, -3002.5, 13.95),
         },
         spawn = vec4(-44.27, -1098.0, 26.42, 70.0),
+        testdrive = vec4(-1336.0, -3044.0, 13.94, 329.0),
     },
 }
 

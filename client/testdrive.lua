@@ -3,22 +3,32 @@ TestDrive = {}
 local cfg = Config.Client.testDrive
 local active = false
 local veh
-local returnCoords
+local dealershipRef
+
+local function clearUI()
+    SendNUIMessage({ action = 'testdrive', state = 'stop' })
+end
 
 function TestDrive.stop()
     if not active then return end
     active = false
-    lib.hideTextUI()
+    clearUI()
 
     local ped = cache.ped or PlayerPedId()
     if veh and DoesEntityExist(veh) then DeleteEntity(veh) end
     veh = nil
 
-    if returnCoords then
-        SetEntityCoords(ped, returnCoords.x, returnCoords.y, returnCoords.z, false, false, false, false)
-        SetEntityHeading(ped, returnCoords.w)
+    local d = dealershipRef
+    if d then
+        SetEntityCoords(ped, d.coords.x, d.coords.y, d.coords.z, false, false, false, false)
+        SetEntityHeading(ped, d.coords.w)
     end
-    Framework.Notify(locale('testdrive_over'), 'inform')
+
+    if cfg.returnToShop and d then
+        OpenShop(d)
+    else
+        Framework.Notify(locale('testdrive_over'), 'inform')
+    end
 end
 
 function TestDrive.start(model, dealership, colorPrimary, colorSecondary)
@@ -28,9 +38,9 @@ function TestDrive.start(model, dealership, colorPrimary, colorSecondary)
     if not lib.requestModel(hash, 10000) then return end
 
     active = true
-    returnCoords = dealership.coords
+    dealershipRef = dealership
 
-    local sp = dealership.spawn
+    local sp = dealership.testdrive or dealership.spawn
     veh = CreateVehicle(hash, sp.x, sp.y, sp.z, sp.w, true, false)
     SetModelAsNoLongerNeeded(hash)
     SetVehicleModKit(veh, 0)
@@ -41,18 +51,17 @@ function TestDrive.start(model, dealership, colorPrimary, colorSecondary)
     SetPedIntoVehicle(ped, veh, -1)
     SetVehicleEngineOn(veh, true, true, false)
 
+    SendNUIMessage({ action = 'testdrive', state = 'start', total = cfg.duration, seconds = cfg.duration })
+
     CreateThread(function()
         local endAt = GetGameTimer() + cfg.duration * 1000
-        local lastLabel
+        local lastSec
         while active do
             local remaining = math.ceil((endAt - GetGameTimer()) / 1000)
             if remaining <= 0 then break end
-            if cfg.showTimer then
-                local label = locale('testdrive_timer', remaining)
-                if label ~= lastLabel then
-                    lib.showTextUI(label, { position = 'top-center' })
-                    lastLabel = label
-                end
+            if remaining ~= lastSec then
+                lastSec = remaining
+                SendNUIMessage({ action = 'testdrive', state = 'tick', total = cfg.duration, seconds = remaining })
             end
             if IsControlJustPressed(0, 73) then break end
             Wait(0)

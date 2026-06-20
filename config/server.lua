@@ -23,7 +23,6 @@ Config.Server = {
     -- Anti-abuse.
     antiAbuse = {
         purchaseCooldown = 2000,   -- ms between purchase attempts per player
-        maxDealershipDistance = 50.0, -- player must be within this range of the dealership
     },
 
     -- Plate format passed to the framework when creating the vehicle.

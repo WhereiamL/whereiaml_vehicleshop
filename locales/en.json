@@ -4,7 +4,6 @@
     "purchase_financed": "You financed a %s.",
     "not_enough_money": "You can't afford this.",
     "testdrive_over": "Test drive ended.",
-    "testdrive_timer": "Test drive: %ds  •  [X] to end",
     "finance_charged": "Finance payment of $%d taken. Balance: $%d.",
     "finance_paid_off": "Vehicle finance paid off.",
     "finance_missed": "Missed finance payment %d/%d.",
