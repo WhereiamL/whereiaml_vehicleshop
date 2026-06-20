@@ -1,8 +1,8 @@
 {
     "notify_title": "Vehicle Shop",
     "target_browse": "Browse Vehicles",
-    "purchase_success": "You purchased a %s.",
-    "purchase_financed": "You financed a %s.",
+    "purchase_success": "You purchased a %s. It's parked outside the dealership.",
+    "purchase_financed": "You financed a %s. It's parked outside the dealership.",
     "not_enough_money": "You can't afford this.",
     "vehicle_failed": "Failed to create the vehicle. You were refunded.",
     "testdrive_failed": "Could not start the test drive.",

@@ -62,8 +62,8 @@ local function spawnPreview(model)
     SetVehicleDoorsShut(preview, true)
     SetVehicleDirtLevel(preview, 0.0)
     SetVehicleOnGroundProperly(preview)
-    FreezeEntityPosition(preview, true)
-    SetEntityCollision(preview, false, false)
+    SetVehicleHandbrake(preview, true)
+    SetVehicleEngineOn(preview, false, true, true)
     state.heading = p.w + 0.0
     state.targetHeading = p.w + 0.0
     SetEntityHeading(preview, state.heading)
@@ -73,12 +73,15 @@ end
 
 local function renderLoop()
     CreateThread(function()
+        local p = dealership.studio.podium
         while active do
             if preview and DoesEntityExist(preview) then
                 local diff = state.targetHeading - state.heading
                 while diff > 180 do diff = diff - 360 end
                 while diff < -180 do diff = diff + 360 end
                 state.heading = state.heading + diff * ctrl.rotateLerp
+                SetEntityCoordsNoOffset(preview, p.x, p.y, p.z, false, false, false)
+                SetEntityVelocity(preview, 0.0, 0.0, 0.0)
                 SetEntityHeading(preview, state.heading)
             end
             updateCam()
