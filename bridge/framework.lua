@@ -128,31 +128,28 @@ end
 ---@param plate string
 ---@param coords vector4
 ---@param vehicleId integer|string
+---@param props table ox_lib vehicle properties (color/finish/plate) applied on stream
 ---@return boolean
-function Framework.SpawnOwnedVehicle(src, model, plate, coords, vehicleId)
+function Framework.SpawnOwnedVehicle(src, model, plate, coords, vehicleId, props)
+    local vehicleType = 'automobile'
     if Framework.name == 'qbx' then
         local info = exports.qbx_core:GetVehiclesByHash(joaat(model))
-        local vehicleType = info and info.type or 'automobile'
-        local veh = CreateVehicleServerSetter(model, vehicleType, coords.x, coords.y, coords.z, coords.w)
-        local started = GetGameTimer()
-        while not DoesEntityExist(veh) and GetGameTimer() - started < 5000 do Wait(0) end
-        if not DoesEntityExist(veh) then return false end
-        if plate then SetVehicleNumberPlateText(veh, plate) end
-        if vehicleId then Entity(veh).state:set('vehicleid', tonumber(vehicleId) or vehicleId, false) end
-        if GetResourceState('qbx_vehiclekeys') == 'started' then
-            exports.qbx_vehiclekeys:GiveKeys(src, veh)
-        end
-        return true
-    elseif Framework.name == 'esx' then
-        local veh = CreateVehicleServerSetter(model, 'automobile', coords.x, coords.y, coords.z, coords.w)
-        local started = GetGameTimer()
-        while not DoesEntityExist(veh) and GetGameTimer() - started < 5000 do Wait(0) end
-        if not DoesEntityExist(veh) then return false end
-        if plate then SetVehicleNumberPlateText(veh, plate) end
-        if vehicleId then Entity(veh).state:set('vehicleid', vehicleId, false) end
-        return true
+        vehicleType = info and info.type or 'automobile'
     end
-    return false
+
+    local veh = CreateVehicleServerSetter(model, vehicleType, coords.x, coords.y, coords.z, coords.w)
+    local started = GetGameTimer()
+    while not DoesEntityExist(veh) and GetGameTimer() - started < 5000 do Wait(0) end
+    if not DoesEntityExist(veh) then return false end
+
+    if plate then SetVehicleNumberPlateText(veh, plate) end
+    if vehicleId then Entity(veh).state:set('vehicleid', tonumber(vehicleId) or vehicleId, false) end
+    if props then Entity(veh).state:set('ox_lib:setVehicleProperties', props, true) end
+
+    if Framework.name == 'qbx' and GetResourceState('qbx_vehiclekeys') == 'started' then
+        exports.qbx_vehiclekeys:GiveKeys(src, veh)
+    end
+    return true
 end
 
 function Framework.GetSrcByCitizenId(citizenid)

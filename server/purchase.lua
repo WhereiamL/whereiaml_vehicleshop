@@ -121,7 +121,7 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
                 return { ok = false, reason = 'vehicle_failed' }
             end
             Finance.create(Framework.GetCitizenId(src), vehicleId, price - down)
-            Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId)
+            Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId, props)
             Framework.Notify(src, locale('purchase_financed', entry.name), 'success')
             return { ok = true }
         end
@@ -134,7 +134,7 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
             Framework.AddMoney(src, payment, price, 'vehicleshop-refund')
             return { ok = false, reason = 'vehicle_failed' }
         end
-        Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId)
+        Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId, props)
         Framework.Notify(src, locale('purchase_success', entry.name), 'success')
         return { ok = true }
     end)
