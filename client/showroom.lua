@@ -172,7 +172,11 @@ function Showroom.open(d, firstModel)
     local fadeStart = GetGameTimer()
     while not IsScreenFadedOut() and GetGameTimer() - fadeStart < 1200 do Wait(0) end
 
-    lib.callback.await('whereiaml_vehicleshop:enterStudio', false)
+    if not lib.callback.await('whereiaml_vehicleshop:enterStudio', false, dealership.id) then
+        active = false
+        DoScreenFadeIn(300)
+        return
+    end
 
     local ped = cache.ped or PlayerPedId()
     restoreCoords = GetEntityCoords(ped)

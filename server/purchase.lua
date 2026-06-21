@@ -67,10 +67,18 @@ local function validColor(c)
         and type(c.b) == 'number' and c.b >= 0 and c.b <= 255
 end
 
-local function getDealership(dealershipId)
+function GetDealership(dealershipId)
     for i = 1, #Config.Dealerships do
         if Config.Dealerships[i].id == dealershipId then return Config.Dealerships[i] end
     end
+end
+
+local function sellsCategory(dealership, category)
+    if not dealership.categories then return true end
+    for i = 1, #dealership.categories do
+        if dealership.categories[i] == category then return true end
+    end
+    return false
 end
 
 lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
@@ -98,12 +106,16 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
     local entry = Catalog.entry(data.model)
     if not entry then return { ok = false } end
 
-    local dealership = getDealership(data.dealership)
+    local dealership = GetDealership(data.dealership)
     if not dealership then
         return { ok = false }
     end
 
-    if not IsInStudio(src) then
+    if StudioDealership(src) ~= data.dealership then
+        return { ok = false }
+    end
+
+    if not sellsCategory(dealership, entry.category) then
         return { ok = false }
     end
 

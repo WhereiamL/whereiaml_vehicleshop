@@ -69,6 +69,7 @@ lib.callback.register('whereiaml_vehicleshop:getMoney', function(source)
 end)
 
 local STUDIO_BUCKET_BASE <const> = 6000
+local STUDIO_RADIUS <const> = 5.0
 local inStudio = {}
 
 local function leaveStudio(src)
@@ -78,11 +79,29 @@ end
 
 ---@return boolean
 function IsInStudio(src)
-    return inStudio[src] == true
+    return inStudio[src] ~= nil
 end
 
-lib.callback.register('whereiaml_vehicleshop:enterStudio', function(source)
-    inStudio[source] = true
+---@return string?
+function StudioDealership(src)
+    return inStudio[src]
+end
+
+lib.callback.register('whereiaml_vehicleshop:enterStudio', function(source, dealershipId)
+    if type(dealershipId) ~= 'string' then return false end
+
+    local dealership = GetDealership(dealershipId)
+    if not dealership then return false end
+
+    local ped = GetPlayerPed(source)
+    if ped == 0 then return false end
+
+    local c = dealership.coords
+    if #(GetEntityCoords(ped) - vec3(c.x, c.y, c.z)) > STUDIO_RADIUS then
+        return false
+    end
+
+    inStudio[source] = dealershipId
     SetPlayerRoutingBucket(source, STUDIO_BUCKET_BASE + source)
     return true
 end)
