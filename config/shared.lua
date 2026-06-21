@@ -70,12 +70,12 @@ Config.Dealerships = {
         id = 'pdm',
         label = 'Premium Deluxe Motorsport',
         ped = 'a_m_y_business_01',
-        coords = vec4(-56.51, -1096.6, 26.42, 25.0),
+        coords = vec4(-56.98, -1097.25, 25.42, 28.98),
         blip = { enabled = true, sprite = 326, color = 3, scale = 0.8 },
         categories = nil,
         studio = {
             podium = vec4(-1395.0, -3000.0, 13.95, 240.0),
-            ped = vec4(-1398.5, -3002.5, 13.95, 50.0),
+            ped = vec4(-1398.5, -3002.5, 13.95, 50.0), -- ped    = vec4 where the player is placed in the studio (x,y,z,heading).
         },
         spawn = vec4(-57.08, -1073.53, 26.22, 71.23),
         testdrive = vec4(-1336.0, -3044.0, 13.94, 329.0),

@@ -60,6 +60,9 @@ local function spawnPreview(model)
     SetModelAsNoLongerNeeded(hash)
     SetEntityInvincible(preview, true)
     SetVehicleDoorsShut(preview, true)
+    for i = 0, 5 do
+        SetVehicleDoorCanBreak(preview, i, false)
+    end
     SetVehicleDirtLevel(preview, 0.0)
     SetVehicleOnGroundProperly(preview)
     SetVehicleEngineOn(preview, false, true, true)
