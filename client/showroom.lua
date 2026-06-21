@@ -178,6 +178,7 @@ function Showroom.open(d, firstModel)
     local p = dealership.studio.podium
     local s = dealership.studio.ped
     SetEntityCoords(ped, s.x, s.y, s.z, false, false, false, false)
+    SetEntityHeading(ped, s.w or 0.0)
 
     RequestCollisionAtCoord(p.x, p.y, p.z)
     local loadStart = GetGameTimer()
