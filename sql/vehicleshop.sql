@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS `whereiaml_vehicleshop_finance` (
     `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `citizenid` VARCHAR(64) NOT NULL,
     `vehicleid` VARCHAR(64) NOT NULL,
+    `label` VARCHAR(64) NOT NULL DEFAULT 'Vehicle',
     `balance` INT NOT NULL,
     `payment_amount` INT NOT NULL,
     `payments_left` INT NOT NULL,

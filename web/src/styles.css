@@ -45,6 +45,8 @@ html, body, #root {
 .panel-right { animation: slideInRight 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .td-box, .hint-box { animation: slideUpC 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .money-bar { animation: slideDownC 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes popIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+.panel-pop { animation: popIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .car-img { animation: imgIn 0.3s ease both; }
 
 .car-row-anim { transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease; }

@@ -2,11 +2,11 @@ Finance = {}
 
 local cfg = Config.Server.finance
 
-function Finance.create(citizenid, vehicleId, principal)
+function Finance.create(citizenid, vehicleId, principal, label)
     local total = math.floor(principal * (1 + cfg.interestPercent / 100))
     local payment = math.ceil(total / cfg.maxPayments)
-    MySQL.insert('INSERT INTO whereiaml_vehicleshop_finance (citizenid, vehicleid, balance, payment_amount, payments_left) VALUES (?, ?, ?, ?, ?)', {
-        citizenid, tostring(vehicleId), total, payment, cfg.maxPayments,
+    MySQL.insert('INSERT INTO whereiaml_vehicleshop_finance (citizenid, vehicleid, label, balance, payment_amount, payments_left) VALUES (?, ?, ?, ?, ?, ?)', {
+        citizenid, tostring(vehicleId), label or 'Vehicle', total, payment, cfg.maxPayments,
     })
     return total, payment
 end
@@ -57,23 +57,24 @@ end
 lib.callback.register('whereiaml_vehicleshop:getFinances', function(source)
     local citizenid = Framework.GetCitizenId(source)
     if not citizenid then return {} end
-    return MySQL.query.await('SELECT id, vehicleid, balance, payment_amount, payments_left FROM whereiaml_vehicleshop_finance WHERE citizenid = ?', { citizenid }) or {}
+    return MySQL.query.await('SELECT id, label, balance, payment_amount, payments_left FROM whereiaml_vehicleshop_finance WHERE citizenid = ?', { citizenid }) or {}
 end)
 
 lib.callback.register('whereiaml_vehicleshop:payoff', function(source, financeId)
-    if type(financeId) ~= 'number' then return false end
+    if type(financeId) ~= 'number' then return { ok = false } end
     local citizenid = Framework.GetCitizenId(source)
-    if not citizenid then return false end
+    if not citizenid then return { ok = false } end
 
     local row = MySQL.single.await('SELECT * FROM whereiaml_vehicleshop_finance WHERE id = ? AND citizenid = ?', { financeId, citizenid })
-    if not row then return false end
+    if not row then return { ok = false } end
 
+    if cfg.installmentFrom == 'bank' and not Config.Server.allowBankOverdraft and Framework.GetMoney(source, 'bank') < row.balance then
+        return { ok = false, reason = 'not_enough_money' }
+    end
     if not Framework.RemoveMoney(source, cfg.installmentFrom, row.balance, 'vehicleshop-payoff') then
-        Framework.Notify(source, locale('not_enough_money'), 'error')
-        return false
+        return { ok = false, reason = 'not_enough_money' }
     end
 
     MySQL.update('DELETE FROM whereiaml_vehicleshop_finance WHERE id = ?', { row.id })
-    Framework.Notify(source, locale('finance_paid_off'), 'success')
-    return true
+    return { ok = true }
 end)

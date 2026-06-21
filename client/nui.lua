@@ -145,5 +145,23 @@ RegisterNUICallback('getFinances', function(_, cb)
 end)
 
 RegisterNUICallback('payoff', function(data, cb)
-    cb(lib.callback.await('whereiaml_vehicleshop:payoff', false, data.id))
+    local res = lib.callback.await('whereiaml_vehicleshop:payoff', false, data.id)
+    if res and res.ok then
+        ShopNotify('success', locale('finance_paid_off'))
+    else
+        ShopNotify('error', locale('not_enough_money'))
+    end
+    cb(res or { ok = false })
 end)
+
+RegisterNUICallback('closeLoans', function(_, cb)
+    cb(1)
+    SetNuiFocus(false, false)
+end)
+
+RegisterCommand('myloans', function()
+    if Showroom.isActive() or TestDrive.isActive() then return end
+    local loans = lib.callback.await('whereiaml_vehicleshop:getFinances', false)
+    SetNuiFocus(true, true)
+    SendNUIMessage({ action = 'loans', loans = loans })
+end, false)

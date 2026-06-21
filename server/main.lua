@@ -29,6 +29,7 @@ CreateThread(function()
             `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
             `citizenid` VARCHAR(64) NOT NULL,
             `vehicleid` VARCHAR(64) NOT NULL,
+            `label` VARCHAR(64) NOT NULL DEFAULT 'Vehicle',
             `balance` INT NOT NULL,
             `payment_amount` INT NOT NULL,
             `payments_left` INT NOT NULL,
@@ -38,6 +39,7 @@ CreateThread(function()
             KEY `idx_citizenid` (`citizenid`),
             KEY `idx_vehicleid` (`vehicleid`)
         )]])
+        MySQL.query.await("ALTER TABLE `whereiaml_vehicleshop_finance` ADD COLUMN IF NOT EXISTS `label` VARCHAR(64) NOT NULL DEFAULT 'Vehicle'")
     end)
     if not ok and Config.Debug then
         lib.print.error('failed creating finance table')

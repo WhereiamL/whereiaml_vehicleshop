@@ -138,7 +138,7 @@ lib.callback.register('whereiaml_vehicleshop:purchase', function(source, data)
                 Framework.AddMoney(src, cfg.downPaymentFrom, down, 'vehicleshop-refund')
                 return { ok = false, reason = 'vehicle_failed' }
             end
-            Finance.create(Framework.GetCitizenId(src), vehicleId, price - down)
+            Finance.create(Framework.GetCitizenId(src), vehicleId, price - down, entry.name)
             Framework.SpawnOwnedVehicle(src, data.model, plate, dealership.spawn, vehicleId, props, entry.vehicleType)
             return { ok = true, name = entry.name }
         end

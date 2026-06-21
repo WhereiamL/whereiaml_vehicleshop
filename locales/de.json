@@ -1,0 +1,14 @@
+{
+    "notify_title": "Autohaus",
+    "target_browse": "Fahrzeuge ansehen",
+    "purchase_success": "Du hast einen %s gekauft. Er steht vor dem Autohaus.",
+    "purchase_financed": "Du hast einen %s finanziert. Er steht vor dem Autohaus.",
+    "not_enough_money": "Das kannst du dir nicht leisten.",
+    "vehicle_failed": "Fahrzeug konnte nicht erstellt werden. Du wurdest erstattet.",
+    "testdrive_failed": "Probefahrt konnte nicht gestartet werden.",
+    "testdrive_over": "Probefahrt beendet.",
+    "finance_charged": "Finanzierungsrate von $%d abgebucht. Restbetrag: $%d.",
+    "finance_paid_off": "Fahrzeugfinanzierung vollständig abbezahlt.",
+    "finance_missed": "Finanzierungsrate verpasst %d/%d.",
+    "finance_repossessed": "Dein finanziertes Fahrzeug wurde eingezogen."
+}

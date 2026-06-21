@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Box, Button, ColorPicker, Group, Paper, Progress,
+  ActionIcon, Box, Button, ColorPicker, Group, Paper, Progress,
   ScrollArea, SegmentedControl, Stack, Tabs, Text, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
   IconBuildingBank, IconBuildingStore, IconBrush, IconCash, IconCreditCard, IconDoor, IconKey,
-  IconPaint, IconRotate360, IconSearch, IconSteeringWheel, IconStopwatch, IconZoomScan,
+  IconPaint, IconReceipt2, IconRotate360, IconSearch, IconSteeringWheel, IconStopwatch, IconX, IconZoomScan,
 } from '@tabler/icons-react';
 import { fetchNui } from './fetchNui.js';
 import { sfx } from './sound.js';
@@ -80,12 +80,63 @@ function TestDriveBox({ td }) {
   );
 }
 
+function LoansPanel({ loans, onPayoff, onClose, busyId }) {
+  return (
+    <Box
+      style={{
+        position: 'fixed', inset: 0, zIndex: 3, pointerEvents: 'auto',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.45)',
+      }}
+    >
+      <Paper className="panel-pop" radius="sm" w={460} p="lg" style={{ backgroundColor: 'rgba(24,24,27,0.97)', border: '1px solid rgba(255,255,255,0.10)' }}>
+        <Group justify="space-between" mb="md">
+          <Group gap="sm">
+            <ThemeIcon size={36} radius="sm" variant="light" color="blue"><IconReceipt2 size={20} /></ThemeIcon>
+            <Box>
+              <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 2 }}>Active Finance</Text>
+              <Title order={4} c="white">My Loans</Title>
+            </Box>
+          </Group>
+          <ActionIcon variant="subtle" color="gray" onClick={onClose}><IconX size={18} /></ActionIcon>
+        </Group>
+
+        {loans.length === 0 ? (
+          <Text c="dimmed" ta="center" py="xl">You have no active loans.</Text>
+        ) : (
+          <Stack gap="xs">
+            {loans.map((l) => (
+              <Paper key={l.id} radius="sm" p="sm" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <Group justify="space-between" align="flex-start">
+                  <Box>
+                    <Text fw={700} c="white">{l.label}</Text>
+                    <Text size="xs" c="dimmed">{l.payments_left} payments left · {money(l.payment_amount)} each</Text>
+                  </Box>
+                  <Box ta="right">
+                    <Text size="xs" c="dimmed">Balance</Text>
+                    <Text fw={800} c="blue.4">{money(l.balance)}</Text>
+                  </Box>
+                </Group>
+                <Button mt="sm" fullWidth size="xs" loading={busyId === l.id} onClick={() => onPayoff(l.id)}>
+                  Pay off {money(l.balance)}
+                </Button>
+              </Paper>
+            ))}
+          </Stack>
+        )}
+      </Paper>
+    </Box>
+  );
+}
+
 export default function App() {
   const [visible, setVisible] = useState(false);
   const [data, setData] = useState(null);
   const [wallet, setWallet] = useState({ cash: 0, bank: 0 });
   const [search, setSearch] = useState('');
   const [td, setTd] = useState(null);
+  const [loans, setLoans] = useState(null);
+  const [loanBusy, setLoanBusy] = useState(null);
   const [activeCat, setActiveCat] = useState(null);
   const [selected, setSelected] = useState(null);
   const [primary, setPrimary] = useState('#780000');
@@ -130,6 +181,10 @@ export default function App() {
         else sfx.click();
         notifications.show({ color, title: msg.title, message: msg.message, autoClose: 4500 });
       }
+      else if (msg.action === 'loans') {
+        sfx.tick();
+        setLoans(msg.loans || []);
+      }
     }
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
@@ -137,11 +192,13 @@ export default function App() {
 
   useEffect(() => {
     function onKey(e) {
-      if (e.key === 'Escape' && visible) close();
+      if (e.key !== 'Escape') return;
+      if (loans !== null) closeLoans();
+      else if (visible) close();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [visible]);
+  }, [visible, loans]);
 
   const present = useMemo(() => {
     if (!data) return [];
@@ -204,6 +261,21 @@ export default function App() {
     sfx.tick();
     setVisible(false);
     fetchNui('close');
+  }
+  function closeLoans() {
+    sfx.tick();
+    setLoans(null);
+    fetchNui('closeLoans');
+  }
+  async function payoffLoan(id) {
+    if (loanBusy) return;
+    setLoanBusy(id);
+    const res = await fetchNui('payoff', { id });
+    setLoanBusy(null);
+    if (res && res.ok) {
+      const fresh = await fetchNui('getFinances');
+      setLoans(Array.isArray(fresh) ? fresh : []);
+    }
   }
   function paymentDesc(p) {
     if (!data) return '';
@@ -521,6 +593,7 @@ export default function App() {
       )}
 
       {td && <TestDriveBox td={td} />}
+      {loans !== null && <LoansPanel loans={loans} onPayoff={payoffLoan} onClose={closeLoans} busyId={loanBusy} />}
     </>
   );
 }
