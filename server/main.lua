@@ -111,6 +111,18 @@ lib.callback.register('whereiaml_vehicleshop:exitStudio', function(source)
     return true
 end)
 
+local TESTDRIVE_BUCKET_BASE <const> = 7000
+
+lib.callback.register('whereiaml_vehicleshop:startTestDrive', function(source)
+    SetPlayerRoutingBucket(source, TESTDRIVE_BUCKET_BASE + source)
+    return true
+end)
+
+lib.callback.register('whereiaml_vehicleshop:endTestDrive', function(source)
+    SetPlayerRoutingBucket(source, 0)
+    return true
+end)
+
 AddEventHandler('playerDropped', function()
     leaveStudio(source)
 end)

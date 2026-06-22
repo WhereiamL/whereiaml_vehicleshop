@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'WhereiamL'
 description 'Premium standalone vehicle dealership (QBox + ESX) with live showroom, color, doors, test drive and finance'
-version '1.0.0'
+version '1.0.1'
 repository 'https://github.com/whereiaml/whereiaml_vehicleshop'
 
 shared_scripts {

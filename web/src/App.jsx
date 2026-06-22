@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActionIcon, Box, Button, ColorPicker, Group, Paper, Progress,
+  ActionIcon, Box, Button, ColorPicker, Group, Kbd, Paper, Progress,
   ScrollArea, SegmentedControl, Stack, Tabs, Text, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
-  IconBuildingBank, IconBuildingStore, IconBrush, IconCash, IconCreditCard, IconDoor, IconKey,
+  IconBackspace, IconBuildingBank, IconBuildingStore, IconBrush, IconCash, IconCreditCard, IconDoor, IconKey,
   IconPaint, IconReceipt2, IconRotate360, IconSearch, IconSteeringWheel, IconStopwatch, IconX, IconZoomScan,
 } from '@tabler/icons-react';
 import { fetchNui } from './fetchNui.js';
@@ -75,7 +75,12 @@ function TestDriveBox({ td }) {
           <Progress value={pct} size="xs" color="blue" mt={4} />
         </Box>
       </Group>
-      <Text size="xs" c="dimmed" ta="center" mt={6}>Press [X] to end early</Text>
+      <Group justify="center" gap={6} mt={8} wrap="nowrap">
+        <Kbd style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', fontWeight: 700 }}>
+          <IconBackspace size={16} /> Backspace
+        </Kbd>
+        <Text size="xs" c="dimmed">to end early</Text>
+      </Group>
     </Paper>
   );
 }

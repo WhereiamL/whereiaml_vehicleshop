@@ -28,5 +28,6 @@ Config.Client = {
     testDrive = {
         duration = 45,         -- seconds before the vehicle is auto-returned
         returnToShop = true,   -- after the test drive, reopen the dealership so the player can keep browsing
+        cancelKey = 'BACK',    -- key to end the test drive early (default Backspace; rebindable in Settings > Key Bindings)
     },
 }
