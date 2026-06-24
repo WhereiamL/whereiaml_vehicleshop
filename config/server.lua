@@ -6,6 +6,19 @@ Config.Server = {
     -- 'cash' / 'bank' map to framework money types. 'finance' enables loans below.
     paymentMethods = { 'cash', 'bank', 'finance' },
 
+    -- How a purchased vehicle is delivered:
+    --   'world'  -> spawned in the real world at the dealership `spawn` point (see config/shared.lua).
+    --               The spawn point is occupancy-checked, so cars never stack on top of each other.
+    --   'garage' -> sent straight to a garage. No world spawn; the player retrieves it from the garage.
+    delivery = 'world',
+
+    -- Garage the vehicle is deposited into when delivery = 'garage'.
+    -- QBox: must be a garage id from your qbx_garages config (e.g. 'motelgarage', 'sapcounsel').
+    --       A per-dealership `garage` field in config/shared.lua overrides this.
+    -- ESX:  requires a `stored` column on the owned_vehicles table (standard on most ESX garages);
+    --       the value here is unused and the vehicle is simply stored.
+    garage = 'motelgarage',
+
     -- Allow bank payments to overdraw into a negative balance.
     -- false (recommended) = the purchase/installment is blocked if the bank balance is too low.
     -- true = the player can go into the minus.

@@ -99,8 +99,9 @@ end
 ---@param src number
 ---@param model string
 ---@param props table ox_lib vehicle properties (color1/color2 = {r,g,b})
+---@param garage? string when set, the vehicle is stored in this garage instead of being spawned in the world
 ---@return integer|string? vehicleId, string? plate
-function Framework.GiveVehicle(src, model, props)
+function Framework.GiveVehicle(src, model, props, garage)
     local citizenid = Framework.GetCitizenId(src)
     if not citizenid then return nil end
     if Framework.name == 'qbx' then
@@ -108,6 +109,7 @@ function Framework.GiveVehicle(src, model, props)
             model = model,
             citizenid = citizenid,
             props = props,
+            garage = garage,
         })
         if not vehicleId then return nil end
         local v = exports.qbx_vehicles:GetPlayerVehicle(vehicleId)
@@ -115,9 +117,15 @@ function Framework.GiveVehicle(src, model, props)
         return vehicleId, plate
     elseif Framework.name == 'esx' then
         local plate = props.plate or ('WL' .. math.random(1000, 9999))
-        MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, type) VALUES (?, ?, ?, ?)', {
-            citizenid, plate, json.encode(props), 'car',
-        })
+        if garage then
+            MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, type, stored) VALUES (?, ?, ?, ?, ?)', {
+                citizenid, plate, json.encode(props), 'car', 1,
+            })
+        else
+            MySQL.insert.await('INSERT INTO owned_vehicles (owner, plate, vehicle, type) VALUES (?, ?, ?, ?)', {
+                citizenid, plate, json.encode(props), 'car',
+            })
+        end
         return plate, plate
     end
     return nil

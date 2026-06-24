@@ -22,16 +22,77 @@ local state = {
     colorSecondary = { r = 20, g = 20, b = 20 },
 }
 
+local indexMode <const> = Config.ColorMode == 'index'
+
+local palette
+
+local function buildPalette()
+    if palette ~= nil or not GetVehicleColor then return end
+    palette = false
+    CreateThread(function()
+        local hash = joaat('adder')
+        if not lib.requestModel(hash, 15000) then palette = nil return end
+        local probe = CreateVehicle(hash, 0.0, 0.0, -250.0, 0.0, false, false)
+        SetModelAsNoLongerNeeded(hash)
+        if not DoesEntityExist(probe) then palette = nil return end
+        SetEntityCollision(probe, false, false)
+        SetEntityVisible(probe, false, false)
+        FreezeEntityPosition(probe, true)
+        local out = {}
+        for i = 0, 159 do
+            SetVehicleColours(probe, i, i)
+            Wait(0)
+            local r, g, b = GetVehicleColor(probe)
+            out[i] = { r, g, b }
+        end
+        if DoesEntityExist(probe) then DeleteEntity(probe) end
+        palette = out
+    end)
+end
+
+---@return integer?
+local function nearestIndex(c)
+    if type(palette) ~= 'table' then return nil end
+    local best, bestDist = 0, math.maxinteger
+    for i = 0, 159 do
+        local p = palette[i]
+        if p then
+            local dr, dg, db = c.r - p[1], c.g - p[2], c.b - p[3]
+            local dist = dr * dr + dg * dg + db * db
+            if dist < bestDist then bestDist, best = dist, i end
+        end
+    end
+    return best
+end
+
 local function applyColor()
     if not preview or not DoesEntityExist(preview) then return end
-    local pt = PAINT[state.finish] or 0
     SetVehicleModKit(preview, 0)
-    SetVehicleModColor_1(preview, pt, 0, 0)
-    SetVehicleModColor_2(preview, pt, 0)
-    SetVehicleCustomPrimaryColour(preview, state.colorPrimary.r, state.colorPrimary.g, state.colorPrimary.b)
-    SetVehicleCustomSecondaryColour(preview, state.colorSecondary.r, state.colorSecondary.g, state.colorSecondary.b)
+    if indexMode then
+        local pi, si = nearestIndex(state.colorPrimary), nearestIndex(state.colorSecondary)
+        if pi and si then
+            ClearVehicleCustomPrimaryColour(preview)
+            ClearVehicleCustomSecondaryColour(preview)
+            SetVehicleColours(preview, pi, si)
+        else
+            SetVehicleCustomPrimaryColour(preview, state.colorPrimary.r, state.colorPrimary.g, state.colorPrimary.b)
+            SetVehicleCustomSecondaryColour(preview, state.colorSecondary.r, state.colorSecondary.g, state.colorSecondary.b)
+        end
+    else
+        local pt = PAINT[state.finish] or 0
+        SetVehicleModColor_1(preview, pt, 0, 0)
+        SetVehicleModColor_2(preview, pt, 0)
+        SetVehicleCustomPrimaryColour(preview, state.colorPrimary.r, state.colorPrimary.g, state.colorPrimary.b)
+        SetVehicleCustomSecondaryColour(preview, state.colorSecondary.r, state.colorSecondary.g, state.colorSecondary.b)
+    end
     local _, wheel = GetVehicleExtraColours(preview)
     SetVehicleExtraColours(preview, state.pearl, wheel)
+end
+
+---@return integer?, integer?
+function Showroom.getColorIndices()
+    if not indexMode then return nil end
+    return nearestIndex(state.colorPrimary), nearestIndex(state.colorSecondary)
 end
 
 local function center()
@@ -251,3 +312,7 @@ AddEventHandler('onResourceStop', function(res)
         Showroom.close()
     end
 end)
+
+if indexMode then
+    CreateThread(buildPalette)
+end

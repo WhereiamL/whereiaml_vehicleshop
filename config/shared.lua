@@ -11,6 +11,16 @@ Config.Locale = 'en'
 -- Set true to print debug logs (kept false in production).
 Config.Debug = false
 
+-- How the chosen paint is stored on the purchased vehicle:
+--   'index'  -> the picked colour is snapped to the nearest standard GTA palette colour and stored
+--               as an indexed colour. This is what lets index-based mechanic shops (qbx_customs and
+--               most others) re-spray the car afterwards. Slight trade-off: the final colour is the
+--               closest palette match, not the exact hex. (Recommended.)
+--   'custom' -> the exact RGB hex is stored as a custom colour + finish (gloss/metallic/pearl/matte).
+--               Looks best, but index-only mechanic shops cannot re-spray it until they clear the
+--               custom colour first. The in-UI Finish selector only appears in this mode.
+Config.ColorMode = 'index'
+
 -- Notification style:
 --   'custom'    -> the resource's own Mantine NUI notifications (top-center, animated).
 --   'framework' -> the framework/ox_lib notifications (exports.qbx_core:Notify / ESX.ShowNotification).
@@ -63,7 +73,12 @@ Config.Catalog = {
 -- studio:   hidden showroom location the player is teleported to while browsing.
 --           podium = vec4 where the preview vehicle is placed (heading is its start facing).
 --           ped    = vec4 where the player is placed in the studio (x,y,z,heading).
--- spawn:    vec4 where a purchased vehicle is delivered in the real world.
+-- spawn:    where a purchased vehicle is delivered in the real world (when Config.Server.delivery = 'world').
+--           Either a single vec4, or a list of vec4 points: { vec4(...), vec4(...) }. The server picks
+--           the first point with no vehicle parked on it, so purchases never spawn on top of each other.
+--           If every listed point is taken it nudges the first one forward until a clear spot is found.
+-- garage:   optional. When Config.Server.delivery = 'garage', overrides Config.Server.garage for this
+--           dealership (a qbx_garages id). Leave nil to use the global garage.
 -- testdrive: vec4 where the test-drive vehicle spawns (e.g. an open runway/strip to drive freely).
 Config.Dealerships = {
     {

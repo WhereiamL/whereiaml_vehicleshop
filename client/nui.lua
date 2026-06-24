@@ -1,10 +1,23 @@
 local shopData
+local uiStrings
 
 local function fetchData()
     if not shopData then
         shopData = lib.callback.await('whereiaml_vehicleshop:getData', false)
     end
     return shopData
+end
+
+local function getUIStrings()
+    if not uiStrings then
+        local res = GetCurrentResourceName()
+        local loc = GetConvar('ox:locale', Config.Locale or 'en')
+        local raw = LoadResourceFile(res, ('locales/%s.json'):format(loc))
+            or LoadResourceFile(res, 'locales/en.json')
+        local data = raw and json.decode(raw)
+        uiStrings = (data and data.ui) or {}
+    end
+    return uiStrings
 end
 
 ---@param ntype 'success'|'error'|'inform'
@@ -58,6 +71,8 @@ function OpenShop(dealership)
         colors = { primary = cp, secondary = cs },
         selected = catalog[1].model,
         money = money,
+        ui = getUIStrings(),
+        colorMode = Config.ColorMode,
     })
 end
 
@@ -113,18 +128,25 @@ end)
 RegisterNUICallback('buy', function(data, cb)
     local dealership = Showroom.getDealership()
     local cp, cs = Showroom.getColors()
+    local pi, si = Showroom.getColorIndices()
     local res = lib.callback.await('whereiaml_vehicleshop:purchase', false, {
         model = data.model,
         payment = data.payment,
         dealership = dealership.id,
         colorPrimary = cp,
         colorSecondary = cs,
+        colorPrimaryIndex = pi,
+        colorSecondaryIndex = si,
         finish = Showroom.getFinish(),
         pearl = Showroom.getPearl(),
     })
     cb(res or { ok = false })
     if res and res.ok then
-        ShopNotify('success', locale(data.payment == 'finance' and 'purchase_financed' or 'purchase_success', res.name or 'vehicle'))
+        local garaged = res.delivery == 'garage'
+        local key = data.payment == 'finance'
+            and (garaged and 'purchase_financed_garage' or 'purchase_financed')
+            or (garaged and 'purchase_garage' or 'purchase_success')
+        ShopNotify('success', locale(key, res.name or 'vehicle'))
         closeUI()
     else
         local key = (res and res.reason == 'vehicle_failed') and 'vehicle_failed' or 'not_enough_money'
@@ -163,5 +185,5 @@ RegisterCommand('myloans', function()
     if Showroom.isActive() or TestDrive.isActive() then return end
     local loans = lib.callback.await('whereiaml_vehicleshop:getFinances', false)
     SetNuiFocus(true, true)
-    SendNUIMessage({ action = 'loans', loans = loans })
+    SendNUIMessage({ action = 'loans', loans = loans, ui = getUIStrings() })
 end, false)

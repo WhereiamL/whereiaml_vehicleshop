@@ -27,14 +27,29 @@ function clock(s) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-const PAYMENT_LABELS = { cash: 'Cash', bank: 'Bank', finance: 'Finance' };
+const FINISH_ORDER = ['gloss', 'metallic', 'pearl', 'matte'];
 
-const FINISH_INFO = {
-  gloss: 'Classic glossy paint.',
-  metallic: 'Shiny metallic flake finish.',
-  pearl: 'Pearlescent sheen that shifts under light.',
-  matte: 'Flat, non-reflective finish.',
+const UI_FALLBACK = {
+  dealership: 'Dealership', search_placeholder: 'Search vehicles…', no_vehicles: 'No vehicles found.',
+  doors: 'Doors', paint: 'Paint', primary: 'Primary', secondary: 'Secondary', pearl: 'Pearl',
+  finish: 'Finish', payment: 'Payment', test_drive: 'Test Drive', buy: 'Buy', finance: 'Finance',
+  close: 'Close (ESC)', drag_rotate: 'Drag to rotate', scroll_zoom: 'Scroll to zoom', down: 'down',
+  finish_gloss_label: 'Gloss', finish_metallic_label: 'Metallic', finish_pearl_label: 'Pearl', finish_matte_label: 'Matte',
+  finish_gloss: 'Classic glossy paint.', finish_metallic: 'Shiny metallic flake finish.',
+  finish_pearl: 'Pearlescent sheen that shifts under light.', finish_matte: 'Flat, non-reflective finish.',
+  pay_cash: 'Cash', pay_bank: 'Bank', pay_finance: 'Finance',
+  pay_cash_desc: 'Pay the full price in cash right now.',
+  pay_bank_desc: 'Pay the full price from your bank account.',
+  pay_finance_desc: 'Pay {down}% down, then {count} installments charged {due}.',
+  schedule_fallback: 'on schedule',
+  td_title: 'Test drive', td_ends_in: 'Ends in {time}', td_end_early: 'to end early', td_key: 'Backspace',
+  loans_active: 'Active Finance', loans_title: 'My Loans', loans_empty: 'You have no active loans.',
+  loans_payments_left: '{n} payments left · {each} each', loans_balance: 'Balance', loans_payoff: 'Pay off {amount}',
 };
+
+function fmt(s, vars) {
+  return String(s).replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null ? vars[k] : ''));
+}
 
 function SectionLabel({ icon, children }) {
   return (
@@ -45,7 +60,7 @@ function SectionLabel({ icon, children }) {
   );
 }
 
-function TestDriveBox({ td }) {
+function TestDriveBox({ td, ui }) {
   const pct = td.total ? Math.max(0, (td.seconds / td.total) * 100) : 0;
   return (
     <Paper
@@ -70,22 +85,22 @@ function TestDriveBox({ td }) {
           <IconStopwatch size={24} />
         </ThemeIcon>
         <Box style={{ flex: 1 }}>
-          <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 1 }}>Test drive</Text>
-          <Text size="lg" fw={800} c="white">Ends in {clock(td.seconds)}</Text>
+          <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 1 }}>{ui.td_title}</Text>
+          <Text size="lg" fw={800} c="white">{fmt(ui.td_ends_in, { time: clock(td.seconds) })}</Text>
           <Progress value={pct} size="xs" color="blue" mt={4} />
         </Box>
       </Group>
       <Group justify="center" gap={6} mt={8} wrap="nowrap">
         <Kbd style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', fontWeight: 700 }}>
-          <IconBackspace size={16} /> Backspace
+          <IconBackspace size={16} /> {ui.td_key}
         </Kbd>
-        <Text size="xs" c="dimmed">to end early</Text>
+        <Text size="xs" c="dimmed">{ui.td_end_early}</Text>
       </Group>
     </Paper>
   );
 }
 
-function LoansPanel({ loans, onPayoff, onClose, busyId }) {
+function LoansPanel({ loans, onPayoff, onClose, busyId, ui }) {
   return (
     <Box
       style={{
@@ -99,15 +114,15 @@ function LoansPanel({ loans, onPayoff, onClose, busyId }) {
           <Group gap="sm">
             <ThemeIcon size={36} radius="sm" variant="light" color="blue"><IconReceipt2 size={20} /></ThemeIcon>
             <Box>
-              <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 2 }}>Active Finance</Text>
-              <Title order={4} c="white">My Loans</Title>
+              <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 2 }}>{ui.loans_active}</Text>
+              <Title order={4} c="white">{ui.loans_title}</Title>
             </Box>
           </Group>
           <ActionIcon variant="subtle" color="gray" onClick={onClose}><IconX size={18} /></ActionIcon>
         </Group>
 
         {loans.length === 0 ? (
-          <Text c="dimmed" ta="center" py="xl">You have no active loans.</Text>
+          <Text c="dimmed" ta="center" py="xl">{ui.loans_empty}</Text>
         ) : (
           <Stack gap="xs">
             {loans.map((l) => (
@@ -115,15 +130,15 @@ function LoansPanel({ loans, onPayoff, onClose, busyId }) {
                 <Group justify="space-between" align="flex-start">
                   <Box>
                     <Text fw={700} c="white">{l.label}</Text>
-                    <Text size="xs" c="dimmed">{l.payments_left} payments left · {money(l.payment_amount)} each</Text>
+                    <Text size="xs" c="dimmed">{fmt(ui.loans_payments_left, { n: l.payments_left, each: money(l.payment_amount) })}</Text>
                   </Box>
                   <Box ta="right">
-                    <Text size="xs" c="dimmed">Balance</Text>
+                    <Text size="xs" c="dimmed">{ui.loans_balance}</Text>
                     <Text fw={800} c="blue.4">{money(l.balance)}</Text>
                   </Box>
                 </Group>
                 <Button mt="sm" fullWidth size="xs" loading={busyId === l.id} onClick={() => onPayoff(l.id)}>
-                  Pay off {money(l.balance)}
+                  {fmt(ui.loans_payoff, { amount: money(l.balance) })}
                 </Button>
               </Paper>
             ))}
@@ -153,10 +168,12 @@ export default function App() {
   const [payment, setPayment] = useState('cash');
   const [imgError, setImgError] = useState({});
   const [buying, setBuying] = useState(false);
+  const [ui, setUi] = useState(UI_FALLBACK);
   const drag = useRef({ down: false, dx: 0, dy: 0, raf: 0 });
 
   function applyOpen(payload) {
     setData(payload);
+    if (payload.ui) setUi(payload.ui);
     if (payload.money) setWallet(payload.money);
     setSearch('');
     setSelected(payload.selected);
@@ -188,6 +205,7 @@ export default function App() {
       }
       else if (msg.action === 'loans') {
         sfx.tick();
+        if (msg.ui) setUi(msg.ui);
         setLoans(msg.loans || []);
       }
     }
@@ -282,13 +300,25 @@ export default function App() {
       setLoans(Array.isArray(fresh) ? fresh : []);
     }
   }
+  const paymentLabels = { cash: ui.pay_cash, bank: ui.pay_bank, finance: ui.pay_finance };
+  const finishLabels = {
+    gloss: ui.finish_gloss_label, metallic: ui.finish_metallic_label,
+    pearl: ui.finish_pearl_label, matte: ui.finish_matte_label,
+  };
+  const finishInfo = {
+    gloss: ui.finish_gloss, metallic: ui.finish_metallic,
+    pearl: ui.finish_pearl, matte: ui.finish_matte,
+  };
+
   function paymentDesc(p) {
-    if (!data) return '';
-    if (p === 'cash') return 'Pay the full price in cash right now.';
-    if (p === 'bank') return 'Pay the full price from your bank account.';
+    if (p === 'cash') return ui.pay_cash_desc;
+    if (p === 'bank') return ui.pay_bank_desc;
     if (p === 'finance') {
+      if (!data) return '';
       const f = data.finance;
-      return `Pay ${f.downPercent}% down, then ${f.maxPayments} installments charged ${f.dueText || 'on schedule'}.`;
+      return fmt(ui.pay_finance_desc, {
+        down: f.downPercent, count: f.maxPayments, due: f.dueText || ui.schedule_fallback,
+      });
     }
     return '';
   }
@@ -346,7 +376,7 @@ export default function App() {
               <Group p="md" gap="sm" wrap="nowrap">
                 <ThemeIcon size={40} radius="md" variant="light" color="blue"><IconBuildingStore size={22} /></ThemeIcon>
                 <Box>
-                  <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 2 }}>Dealership</Text>
+                  <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 2 }}>{ui.dealership}</Text>
                   <Title order={4} c="white">{data.dealership}</Title>
                 </Box>
               </Group>
@@ -356,7 +386,7 @@ export default function App() {
                   size="xs"
                   value={search}
                   onChange={(e) => setSearch(e.currentTarget.value)}
-                  placeholder="Search vehicles…"
+                  placeholder={ui.search_placeholder}
                   leftSection={<IconSearch size={14} />}
                 />
               </Box>
@@ -374,7 +404,7 @@ export default function App() {
               <ScrollArea style={{ flex: 1 }} p="xs" offsetScrollbars scrollbarSize={8}>
                 <Stack gap={6} pr={6}>
                   {shown.length === 0 && (
-                    <Text size="xs" c="dimmed" ta="center" mt="md">No vehicles found.</Text>
+                    <Text size="xs" c="dimmed" ta="center" mt="md">{ui.no_vehicles}</Text>
                   )}
                   {shown.map((c) => {
                     const active = c.model === selected;
@@ -439,7 +469,7 @@ export default function App() {
                 )}
 
                 <Box>
-                  <SectionLabel icon={<IconDoor size={14} />}>Doors</SectionLabel>
+                  <SectionLabel icon={<IconDoor size={14} />}>{ui.doors}</SectionLabel>
                   <Group gap={6}>
                     {data.doors.map((d) => {
                       const open = !!doorsOpen[d.doorIndex];
@@ -462,14 +492,14 @@ export default function App() {
                 </Box>
 
                 <Box>
-                  <SectionLabel icon={<IconPaint size={14} />}>Paint</SectionLabel>
+                  <SectionLabel icon={<IconPaint size={14} />}>{ui.paint}</SectionLabel>
                   <SegmentedControl
                     fullWidth size="xs" mb="xs"
                     value={colorTab} onChange={(v) => { sfx.tick(); setColorTab(v); }}
                     data={[
-                      { label: 'Primary', value: 'primary' },
-                      { label: 'Secondary', value: 'secondary' },
-                      { label: 'Pearl', value: 'pearl' },
+                      { label: ui.primary, value: 'primary' },
+                      { label: ui.secondary, value: 'secondary' },
+                      { label: ui.pearl, value: 'pearl' },
                     ]}
                   />
                   {colorTab === 'pearl' ? (
@@ -501,26 +531,30 @@ export default function App() {
                       swatches={['#780000', '#141414', '#ffffff', '#c0c0c0', '#1d3557', '#2a9d8f', '#e9c46a', '#e76f51', '#6a4c93', '#000000']}
                     />
                   )}
-                  <Group gap={4} mt={8} mb={4}>
-                    <IconBrush size={13} color="var(--mantine-color-dimmed)" />
-                    <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 1 }}>Finish</Text>
-                  </Group>
-                  <SegmentedControl
-                    fullWidth size="xs"
-                    value={finish} onChange={changeFinish}
-                    data={['gloss', 'metallic', 'pearl', 'matte'].map((v) => ({
-                      value: v,
-                      label: (
-                        <Tooltip label={FINISH_INFO[v]} openDelay={200} withArrow position="bottom">
-                          <span>{v.charAt(0).toUpperCase() + v.slice(1)}</span>
-                        </Tooltip>
-                      ),
-                    }))}
-                  />
+                  {data.colorMode !== 'index' && (
+                    <>
+                      <Group gap={4} mt={8} mb={4}>
+                        <IconBrush size={13} color="var(--mantine-color-dimmed)" />
+                        <Text size="xs" c="dimmed" fw={700} tt="uppercase" style={{ letterSpacing: 1 }}>{ui.finish}</Text>
+                      </Group>
+                      <SegmentedControl
+                        fullWidth size="xs"
+                        value={finish} onChange={changeFinish}
+                        data={FINISH_ORDER.map((v) => ({
+                          value: v,
+                          label: (
+                            <Tooltip label={finishInfo[v]} openDelay={200} withArrow position="bottom">
+                              <span>{finishLabels[v]}</span>
+                            </Tooltip>
+                          ),
+                        }))}
+                      />
+                    </>
+                  )}
                 </Box>
 
                 <Box>
-                  <SectionLabel icon={<IconCreditCard size={14} />}>Payment</SectionLabel>
+                  <SectionLabel icon={<IconCreditCard size={14} />}>{ui.payment}</SectionLabel>
                   <SegmentedControl
                     fullWidth value={payment} onChange={(v) => { sfx.click(); setPayment(v); }}
                     data={data.payments
@@ -529,7 +563,7 @@ export default function App() {
                         value: p,
                         label: (
                           <Tooltip label={paymentDesc(p)} openDelay={200} withArrow position="bottom" multiline w={220}>
-                            <span>{PAYMENT_LABELS[p] || p}</span>
+                            <span>{paymentLabels[p] || p}</span>
                           </Tooltip>
                         ),
                       }))}
@@ -537,18 +571,18 @@ export default function App() {
                   <Text size="xs" c="dimmed" mt={6}>{paymentDesc(payment)}</Text>
                   {financeInfo && payment === 'finance' && (
                     <Text size="xs" c="blue.4" fw={600} mt={2}>
-                      {money(financeInfo.down)} down · {money(financeInfo.per)} × {financeInfo.count}
+                      {money(financeInfo.down)} {ui.down} · {money(financeInfo.per)} × {financeInfo.count}
                     </Text>
                   )}
                 </Box>
 
                 <Group gap="xs" mt="auto" grow>
-                  <Button variant="default" leftSection={<IconSteeringWheel size={18} />} onClick={testDrive}>Test Drive</Button>
+                  <Button variant="default" leftSection={<IconSteeringWheel size={18} />} onClick={testDrive}>{ui.test_drive}</Button>
                   <Button leftSection={<IconKey size={18} />} onClick={buy} loading={buying}>
-                    {payment === 'finance' ? 'Finance' : 'Buy'}
+                    {payment === 'finance' ? ui.finance : ui.buy}
                   </Button>
                 </Group>
-                <Button variant="subtle" color="gray" size="xs" onClick={close}>Close (ESC)</Button>
+                <Button variant="subtle" color="gray" size="xs" onClick={close}>{ui.close}</Button>
               </Stack>
             </Paper>
 
@@ -564,11 +598,11 @@ export default function App() {
               <Group gap="lg">
                 <Group gap={6}>
                   <ThemeIcon size="sm" radius="sm" variant="light" color="blue"><IconRotate360 size={14} /></ThemeIcon>
-                  <Text size="xs" c="dimmed">Drag to rotate</Text>
+                  <Text size="xs" c="dimmed">{ui.drag_rotate}</Text>
                 </Group>
                 <Group gap={6}>
                   <ThemeIcon size="sm" radius="sm" variant="light" color="blue"><IconZoomScan size={14} /></ThemeIcon>
-                  <Text size="xs" c="dimmed">Scroll to zoom</Text>
+                  <Text size="xs" c="dimmed">{ui.scroll_zoom}</Text>
                 </Group>
               </Group>
             </Paper>
@@ -597,8 +631,8 @@ export default function App() {
         </>
       )}
 
-      {td && <TestDriveBox td={td} />}
-      {loans !== null && <LoansPanel loans={loans} onPayoff={payoffLoan} onClose={closeLoans} busyId={loanBusy} />}
+      {td && <TestDriveBox td={td} ui={ui} />}
+      {loans !== null && <LoansPanel loans={loans} onPayoff={payoffLoan} onClose={closeLoans} busyId={loanBusy} ui={ui} />}
     </>
   );
 }
